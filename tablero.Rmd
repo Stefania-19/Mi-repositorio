@@ -170,7 +170,7 @@ knitr::include_graphics("carrera1.png")
 
 ### Análisis
 
-La carrera de la luz es una convocatoria para personas mayores a 15 años, en la ultima carrera celebrada participaron 1922 atletas de los cuales el 61.29 % eran hombres frente a  un 38.71 % de mujeres, se pudo evidenciar que los participantes recorrieron una distancia de 10.07 kilometros de los cuales el ganador tuvo un tiempo de 33.1 minutos.
+La carrera de la luz es una convocatoria para personas mayores a 15 años, en la ultima carrera celebrada participaron 1922 atletas la mayoría de estos en categoría Abierta, de los cuales el 61.29 % eran hombres frente a  un 38.71 % de mujeres, se pudo evidenciar que los participantes recorrieron una distancia de 10.07 kilometros de los cuales el ganador tuvo un tiempo de 33.1 minutos y el último en llegar a la meta obtuvo un tiempo de 166.03 mminutos.
 
 
 
