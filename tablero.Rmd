@@ -115,14 +115,14 @@ names.arg=c("Juvenil","Abierta","Veteranos A","Veteranos B","Veteranos C"))
 
 ```{r}
 paleta6=c("#447270", "#6B9493", "#F6E271", "#F6B916", "#F69312", "#BC6C25")
-p1=ggplot(CarreraLuz22F, aes(y=timerun/60, x=categoria))+
+p1=ggplot(CarreraLuz22, aes(y=timerun/60, x=categoria))+
   geom_jitter(color="#12AEC9", size=1, alpha=0.9) +
   aes(color=paleta6)+
   labs(title = " ",
        y= "tiempo - min",
        x= "categorias")+ 
-  #facet_wrap(~ sex)
-  #facet_grid(vars(sex), scale="free")+
+  #facet_wrap(vars(sex))
+  facet_grid(vars(sex), scale="free")+
   ylim(0,170)+
   Theme2
 
@@ -170,7 +170,8 @@ knitr::include_graphics("carrera1.png")
 
 ### Análisis
 
-La carrera de la luz es una convocatoria para personas mayores a 15 años, en la ultima carrera celebrada participaron 1922 atletas la mayoria de estos en categoría Abierta, de los cuales el 61.29 % eran hombres frente a  un 38.71 % de mujeres, se pudo evidenciar que los participantes recorrieron una distancia de 10.07 kilometros de los cuales el ganador tuvo un tiempo de 33.1 minutos y el último en llegar a la meta obtuvo un tiempo de 166.03 mminutos.
+La carrera de la luz es una convocatoria para personas mayores a 15 años, en la ultima carrera celebrada participaron 1922 atletas la mayoria de estos en categoría Abierta, de los cuales el 61.29 % eran hombres frente a  un 38.71 % de mujeres, se pudo evidenciar que los participantes recorrieron una distancia de 10.07 kilometros de los cuales el ganador tuvo un tiempo de 33.1 minutos y el último en llegar a la meta obtuvo un tiempo de 166.03 mminutos
+En la categoría abierta 80 mujeres terminaron la carrera en 70 minutos aproximadamente, y respecto a los hombres en esta misma categoría abierta 250 de ellos terminaron al rededor de 50 minutos.
 
 
 
