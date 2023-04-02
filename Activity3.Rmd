@@ -1,0 +1,62 @@
+---
+title: "Actividad 3"
+author: "Stefania Astudillo Bello"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+#library(kableExtra)
+```
+## Problema
+
+Con base en los datos de ofertas de vivienda descargadas del portal Fincaraiz para apartamento de estrato 4 con área construida menor a 200 m2 (vivienda4.RDS) la inmobiliaria A&C requiere el apoyo en la construcción de un modelo que lo oriente sobre los precios de inmuebles.
+
+Con este propósito el equipo de asesores a diseñado los siguientes pasos para obtener un modelo y así poder a futuro determinar los precios de los inmuebles a negociar
+
+```{r}
+
+viviendas <- readRDS(file = "vivienda4.RDS")
+head(viviendas)
+```
+1. Realice un análisis exploratorio de las variables precio de vivienda (millones de pesos COP) y área de la vivienda (metros cuadrados) - incluir gráficos e indicadores apropiados interpretados.
+
+```{r}
+par(mfrow=c(1,2))
+hist(viviendas$areaconst, xlab = "Area", ylab = "Cantidad", col="pink",
+     main="Histograma de la variable areaconst")
+
+boxplot(viviendas$areaconst, col="pink",
+        main="Caja de la variable areaconst")
+
+datosArea <- summary(viviendas$areaconst)
+datosArea
+```
+el promedio del área construida de la oferta de viviendas es de 87.63 m2 para áreas que oscilan entre los 40 m2 (mínimo) y los 200 m2 (máximo).
+La distribución del área de las viviendas si muestra un sesgo bastante pronunciado a la derecha; podemos observar que el 50% de las viviendas tienen entre 40 m2 y 75 m2 mientras que el otro 50% tiene entre 75m2 y 200 m2.
+
+```{r}
+par(mfrow=c(1,2))
+hist(viviendas$preciom, xlab = "precio", ylab = "Cantidad", col="pink",
+     main="Histograma de la variable preciom")
+
+boxplot(viviendas$preciom, col="pink",
+        main="Caja de la variable preciom")
+
+datosPrecio <- summary(viviendas$preciom)
+datosPrecio
+```
+Los datos nos revelan que el promedio del precio de la oferta de viviendas es de 225.4 millones, para valores que oscilan entre los 78 millones (mínimo) y los 760 millones (máximo).
+podemos precisar que la mitad de las viviendas se oferta a un precio menor o igual a los 210 millones y sólo un 25% están en un rango de costosas superando los 265 millones de pesos colombianos.
+
+2. Realice un análisis exploratorio bivariado de datos enfocado en la relación entre la variable respuesta (precio) en función de la variable predictora (area construida) - incluir gráficos e indicadores apropiados interpretados.
+
+```{r}
+plot(viviendas$areaconst, viviendas$preciom, 
+     xlab = "Area construida", ylab="Precio millones", main="Analisis Exploratorio bivariado Area/Precio" )
+
+cor(viviendas$areaconst,viviendas$preciom)
+```
+
+relacion positiva debil
