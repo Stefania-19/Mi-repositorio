@@ -1760,9 +1760,9 @@ display: none;
 <h2>Problema</h2>
 <p>Con base en los datos de ofertas de vivienda descargadas del portal
 Fincaraiz para apartamento de estrato 4 con área construida menor a 200
-m2 (vivienda4.RDS) la inmobiliaria A&amp;C requiere el apoyo en la
-construcción de un modelo que lo oriente sobre los precios de
-inmuebles.</p>
+<span class="math inline">\(m^2\)</span> (vivienda4.RDS) la inmobiliaria
+A&amp;C requiere el apoyo en la construcción de un modelo que lo oriente
+sobre los precios de inmuebles.</p>
 <p>Con este propósito el equipo de asesores a diseñado los siguientes
 pasos para obtener un modelo y así poder a futuro determinar los precios
 de los inmuebles a negociar</p>
@@ -1812,11 +1812,11 @@ datosArea</code></pre>
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>el promedio del área construida de la oferta de viviendas es de 87.63
-m2 para áreas que oscilan entre los 40 m2 (mínimo) y los 200 m2
-(máximo). La distribución del área de las viviendas si muestra un sesgo
-bastante pronunciado a la derecha; podemos observar que el 50% de las
-viviendas tienen entre 40 m2 y 75 m2 mientras que el otro 50% tiene
-entre 75m2 y 200 m2.</p>
+<span class="math inline">\(m^2\)</span> para áreas que oscilan entre
+los 40 <span class="math inline">\(m^2\)</span> (mínimo) y los 200 <span class="math inline">\(m^2\)</span> (máximo). La distribución del área de
+las viviendas si muestra un sesgo bastante pronunciado a la derecha;
+podemos observar que el 50% de las viviendas tienen entre 40 <span class="math inline">\(m^2\)</span> y 75 <span class="math inline">\(m^2\)</span> mientras que el otro 50% tiene entre
+75 <span class="math inline">\(m^2\)</span> y 200 <span class="math inline">\(m^2\)</span>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGFyKG1mcm93PWMoMSwyKSlcbmhpc3Qodml2aWVuZGFzJHByZWNpb20sIHhsYWIgPSBcInByZWNpb1wiLCB5bGFiID0gXCJDYW50aWRhZFwiLCBjb2w9XCJwaW5rXCIsXG4gICAgIG1haW49XCJIaXN0b2dyYW1hIGRlIGxhIHZhcmlhYmxlIHByZWNpb21cIilcblxuYm94cGxvdCh2aXZpZW5kYXMkcHJlY2lvbSwgY29sPVwicGlua1wiLFxuICAgICAgICBtYWluPVwiQ2FqYSBkZSBsYSB2YXJpYWJsZSBwcmVjaW9tXCIpXG5gYGAifQ== -->
@@ -1850,24 +1850,105 @@ millones de pesos colombianos.</p>
 <ol start="2" style="list-style-type: decimal">
 <li>Realice un análisis exploratorio bivariado de datos enfocado en la
 relación entre la variable respuesta (precio) en función de la variable
-predictora (area construida) - incluir gráficos e indicadores apropiados
+predictora (área construida) - incluir gráficos e indicadores apropiados
 interpretados.</li>
 </ol>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCh2aXZpZW5kYXMkYXJlYWNvbnN0LCB2aXZpZW5kYXMkcHJlY2lvbSwgXG4gICAgIHhsYWIgPSBcIkFyZWEgY29uc3RydWlkYVwiLCB5bGFiPVwiUHJlY2lvIG1pbGxvbmVzXCIsIG1haW49XCJBbmFsaXNpcyBFeHBsb3JhdG9yaW8gYml2YXJpYWRvIEFyZWEvUHJlY2lvXCIgKVxuXG5jb3Iodml2aWVuZGFzJGFyZWFjb25zdCx2aXZpZW5kYXMkcHJlY2lvbSlcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCh2aXZpZW5kYXMkYXJlYWNvbnN0LCB2aXZpZW5kYXMkcHJlY2lvbSwgXG4gICAgIHhsYWIgPSBcIkFyZWEgY29uc3RydWlkYVwiLCB5bGFiPVwiUHJlY2lvIG1pbGxvbmVzXCIsIFxuICAgICBtYWluPVwiQW5hbGlzaXMgRXhwbG9yYXRvcmlvIGJpdmFyaWFkbyBBcmVhL1ByZWNpb1wiKVxuXG5jb3Iodml2aWVuZGFzJGFyZWFjb25zdCx2aXZpZW5kYXMkcHJlY2lvbSlcbmBgYCJ9 -->
 <pre class="r"><code>plot(viviendas$areaconst, viviendas$preciom, 
-     xlab = &quot;Area construida&quot;, ylab=&quot;Precio millones&quot;, main=&quot;Analisis Exploratorio bivariado Area/Precio&quot; )
+     xlab = &quot;Area construida&quot;, ylab=&quot;Precio millones&quot;, 
+     main=&quot;Analisis Exploratorio bivariado Area/Precio&quot;)
 
 cor(viviendas$areaconst,viviendas$preciom)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>relacion positiva debil</p>
+<p>Observando la gráfica de dispersión podemos destacar una tendencia
+directa o creciente en la relación del área construida con el precio de
+la vivienda, sin embargo, el comportamiento del precio es más disperso
+para áreas mayores a 100 <span class="math inline">\(m^2\)</span>, lo
+que puede dificultar la representatividad de un modelo de regresión
+lineal. Observando el Coeficiente de Correlación de Pearson (0.76)
+podemos determinar que la asociación que mide la relación lineal entre
+el precio y el área construida es una relación lineal positiva
+débil.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Estime el modelo de regresión lineal simple entre <span class="math inline">\(precio=f(area)+\epsilon\)</span>. Interprete los
+coeficientes del modelo <span class="math inline">\(\beta0,
+\beta1\)</span> en caso de ser correcto.</li>
+</ol>
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kID0gbG0odml2aWVuZGFzJHByZWNpb21+dml2aWVuZGFzJGFyZWFjb25zdClcbnN1bW1hcnkobW9kKVxuYGBgIn0= -->
+<pre class="r"><code>mod = lm(viviendas$preciom~viviendas$areaconst)
+summary(mod)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>El modelo de regresión lineal se estima en: <span class="math inline">\(Precio = 67.381 + 1.803 *
+Area_Contruida\)</span></p>
+<p><span class="math inline">\(\beta0\)</span> = 67.381, este
+coeficiente nos indica el valor de la variable precio cuando no se tiene
+una vivienda construida, se podría pensar que es el valor base del
+terreno.</p>
+<p><span class="math inline">\(\beta1\)</span> = 1.803, indica que por
+cada metro cuadrado construido el valor de la vivienda incrementara
+1.803 millones aproximadamente.</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Construir un intervalo de confianza (95%) para el coeficiente <span class="math inline">\(\beta1\)</span>, interpretar y concluir si el
+coeficiente es igual a cero o no. Compare este resultado con una prueba
+de hipótesis t.</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29uZmludChtb2QpXG5gYGAifQ== -->
+<pre class="r"><code>confint(mod)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Con un nivel de confianza del 95% y un 5% de error <span class="math inline">\(\alpha\)</span>, podemos determinar que el
+coeficiente <span class="math inline">\(\beta1\)</span> para el caso del
+área construida podría tomar un valor entre los 1,73 y los 1,87 millones
+por cada metro cuadrado construido. dado que el 0 no esta incluido en el
+intervalo de confianza, podemos concluir que se rechaza la hipótesis
+nula y se concluye que hay suficiente evidencia para no aceptar la
+nulidad de este coeficiente. Si comparamos este resultado con la prueba
+t que nos da el output del punto anterior, el p-value para el
+coeficiente <span class="math inline">\(\beta1\)</span> fue <span class="math inline">\(2.2e-16\)</span>, esto apoya el rechazo de la
+hipótesis de nulidad y apoya la conclusión obtenida con el intervalo de
+confianza.</p>
+<ol start="5" style="list-style-type: decimal">
+<li>Calcule e interprete el indicador de bondad y ajuste <span class="math inline">\(R^2\)</span>.</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucjIgPSBzdW1tYXJ5KG1vZCkkci5zcXVhcmVkXG5wcmludCggcGFzdGUoXCJDb2VmaWNpZW50ZSBkZSBkZXRlcm1pbmFjacOzbiAoUjIpOiBcIiwgcjIpIClcbmBgYCJ9 -->
+<pre class="r"><code>r2 = summary(mod)$r.squared
+print( paste(&quot;Coeficiente de determinación (R2): &quot;, r2) )</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>El indicador de bondad y ajuste para esta relación es de 0.58, esto
+quiere decir que el modelo explica un 58% de la variación del precio de
+la vivienda. De forma general podemos decir que el modelo tiene poca
+fuerza para predecir a la variable dependiente.</p>
+<ol start="6" style="list-style-type: decimal">
+<li>¿Cuál sería el precio promedio estimado para un apartamento de 110
+metros cuadrados? Considera entonces con este resultado que un
+apartamento en la misma zona con 110 metros cuadrados en un precio de
+200 millones sería una atractiva esta oferta? ¿Qué consideraciones
+adicionales se deben tener?.</li>
+</ol>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJlZGljdChtb2QsIG5ld2RhdGEgPSBsaXN0KEFyZWFfY29udHJ1aWRhPTExMCkpXG5gYGAifQ== -->
+<pre class="r"><code>predict(mod, newdata = list(Area_contruida=110))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkFjdGl2aWRhZCAzIg0KYXV0aG9yOiAiU3RlZmFuaWEgQXN0dWRpbGxvIEJlbGxvIg0Kb3V0cHV0Og0KICBwZGZfZG9jdW1lbnQ6IGRlZmF1bHQNCiAgaHRtbF9ub3RlYm9vazogZGVmYXVsdA0KLS0tDQoNCmBgYHtyIHNldHVwLCBpbmNsdWRlPUZBTFNFfQ0KI2xpYnJhcnkoa2FibGVFeHRyYSkNCmBgYA0KIyMgUHJvYmxlbWENCg0KQ29uIGJhc2UgZW4gbG9zIGRhdG9zIGRlIG9mZXJ0YXMgZGUgdml2aWVuZGEgZGVzY2FyZ2FkYXMgZGVsIHBvcnRhbCBGaW5jYXJhaXogcGFyYSBhcGFydGFtZW50byBkZSBlc3RyYXRvIDQgY29uIMOhcmVhIGNvbnN0cnVpZGEgbWVub3IgYSAyMDAgbTIgKHZpdmllbmRhNC5SRFMpIGxhIGlubW9iaWxpYXJpYSBBJkMgcmVxdWllcmUgZWwgYXBveW8gZW4gbGEgY29uc3RydWNjacOzbiBkZSB1biBtb2RlbG8gcXVlIGxvIG9yaWVudGUgc29icmUgbG9zIHByZWNpb3MgZGUgaW5tdWVibGVzLg0KDQpDb24gZXN0ZSBwcm9ww7NzaXRvIGVsIGVxdWlwbyBkZSBhc2Vzb3JlcyBhIGRpc2XDsWFkbyBsb3Mgc2lndWllbnRlcyBwYXNvcyBwYXJhIG9idGVuZXIgdW4gbW9kZWxvIHkgYXPDrSBwb2RlciBhIGZ1dHVybyBkZXRlcm1pbmFyIGxvcyBwcmVjaW9zIGRlIGxvcyBpbm11ZWJsZXMgYSBuZWdvY2lhcg0KDQpgYGB7cn0NCg0Kdml2aWVuZGFzIDwtIHJlYWRSRFMoZmlsZSA9ICJ2aXZpZW5kYTQuUkRTIikNCmhlYWQodml2aWVuZGFzKQ0KYGBgDQoxLiBSZWFsaWNlIHVuIGFuw6FsaXNpcyBleHBsb3JhdG9yaW8gZGUgbGFzIHZhcmlhYmxlcyBwcmVjaW8gZGUgdml2aWVuZGEgKG1pbGxvbmVzIGRlIHBlc29zIENPUCkgeSDDoXJlYSBkZSBsYSB2aXZpZW5kYSAobWV0cm9zIGN1YWRyYWRvcykgLSBpbmNsdWlyIGdyw6FmaWNvcyBlIGluZGljYWRvcmVzIGFwcm9waWFkb3MgaW50ZXJwcmV0YWRvcy4NCg0KYGBge3J9DQpwYXIobWZyb3c9YygxLDIpKQ0KaGlzdCh2aXZpZW5kYXMkYXJlYWNvbnN0LCB4bGFiID0gIkFyZWEiLCB5bGFiID0gIkNhbnRpZGFkIiwgY29sPSJwaW5rIiwNCiAgICAgbWFpbj0iSGlzdG9ncmFtYSBkZSBsYSB2YXJpYWJsZSBhcmVhY29uc3QiKQ0KDQpib3hwbG90KHZpdmllbmRhcyRhcmVhY29uc3QsIGNvbD0icGluayIsDQogICAgICAgIG1haW49IkNhamEgZGUgbGEgdmFyaWFibGUgYXJlYWNvbnN0IikNCg0KZGF0b3NBcmVhIDwtIHN1bW1hcnkodml2aWVuZGFzJGFyZWFjb25zdCkNCmRhdG9zQXJlYQ0KYGBgDQplbCBwcm9tZWRpbyBkZWwgw6FyZWEgY29uc3RydWlkYSBkZSBsYSBvZmVydGEgZGUgdml2aWVuZGFzIGVzIGRlIDg3LjYzIG0yIHBhcmEgw6FyZWFzIHF1ZSBvc2NpbGFuIGVudHJlIGxvcyA0MCBtMiAobcOtbmltbykgeSBsb3MgMjAwIG0yIChtw6F4aW1vKS4NCkxhIGRpc3RyaWJ1Y2nDs24gZGVsIMOhcmVhIGRlIGxhcyB2aXZpZW5kYXMgc2kgbXVlc3RyYSB1biBzZXNnbyBiYXN0YW50ZSBwcm9udW5jaWFkbyBhIGxhIGRlcmVjaGE7IHBvZGVtb3Mgb2JzZXJ2YXIgcXVlIGVsIDUwJSBkZSBsYXMgdml2aWVuZGFzIHRpZW5lbiBlbnRyZSA0MCBtMiB5IDc1IG0yIG1pZW50cmFzIHF1ZSBlbCBvdHJvIDUwJSB0aWVuZSBlbnRyZSA3NW0yIHkgMjAwIG0yLg0KDQpgYGB7cn0NCnBhcihtZnJvdz1jKDEsMikpDQpoaXN0KHZpdmllbmRhcyRwcmVjaW9tLCB4bGFiID0gInByZWNpbyIsIHlsYWIgPSAiQ2FudGlkYWQiLCBjb2w9InBpbmsiLA0KICAgICBtYWluPSJIaXN0b2dyYW1hIGRlIGxhIHZhcmlhYmxlIHByZWNpb20iKQ0KDQpib3hwbG90KHZpdmllbmRhcyRwcmVjaW9tLCBjb2w9InBpbmsiLA0KICAgICAgICBtYWluPSJDYWphIGRlIGxhIHZhcmlhYmxlIHByZWNpb20iKQ0KDQpkYXRvc1ByZWNpbyA8LSBzdW1tYXJ5KHZpdmllbmRhcyRwcmVjaW9tKQ0KZGF0b3NQcmVjaW8NCmBgYA0KTG9zIGRhdG9zIG5vcyByZXZlbGFuIHF1ZSBlbCBwcm9tZWRpbyBkZWwgcHJlY2lvIGRlIGxhIG9mZXJ0YSBkZSB2aXZpZW5kYXMgZXMgZGUgMjI1LjQgbWlsbG9uZXMsIHBhcmEgdmFsb3JlcyBxdWUgb3NjaWxhbiBlbnRyZSBsb3MgNzggbWlsbG9uZXMgKG3DrW5pbW8pIHkgbG9zIDc2MCBtaWxsb25lcyAobcOheGltbykuDQpwb2RlbW9zIHByZWNpc2FyIHF1ZSBsYSBtaXRhZCBkZSBsYXMgdml2aWVuZGFzIHNlIG9mZXJ0YSBhIHVuIHByZWNpbyBtZW5vciBvIGlndWFsIGEgbG9zIDIxMCBtaWxsb25lcyB5IHPDs2xvIHVuIDI1JSBlc3TDoW4gZW4gdW4gcmFuZ28gZGUgY29zdG9zYXMgc3VwZXJhbmRvIGxvcyAyNjUgbWlsbG9uZXMgZGUgcGVzb3MgY29sb21iaWFub3MuDQoNCjIuIFJlYWxpY2UgdW4gYW7DoWxpc2lzIGV4cGxvcmF0b3JpbyBiaXZhcmlhZG8gZGUgZGF0b3MgZW5mb2NhZG8gZW4gbGEgcmVsYWNpw7NuIGVudHJlIGxhIHZhcmlhYmxlIHJlc3B1ZXN0YSAocHJlY2lvKSBlbiBmdW5jacOzbiBkZSBsYSB2YXJpYWJsZSBwcmVkaWN0b3JhIChhcmVhIGNvbnN0cnVpZGEpIC0gaW5jbHVpciBncsOhZmljb3MgZSBpbmRpY2Fkb3JlcyBhcHJvcGlhZG9zIGludGVycHJldGFkb3MuDQoNCmBgYHtyfQ0KcGxvdCh2aXZpZW5kYXMkYXJlYWNvbnN0LCB2aXZpZW5kYXMkcHJlY2lvbSwgDQogICAgIHhsYWIgPSAiQXJlYSBjb25zdHJ1aWRhIiwgeWxhYj0iUHJlY2lvIG1pbGxvbmVzIiwgbWFpbj0iQW5hbGlzaXMgRXhwbG9yYXRvcmlvIGJpdmFyaWFkbyBBcmVhL1ByZWNpbyIgKQ0KDQpjb3Iodml2aWVuZGFzJGFyZWFjb25zdCx2aXZpZW5kYXMkcHJlY2lvbSkNCmBgYA0KDQpyZWxhY2lvbiBwb3NpdGl2YSBkZWJpbA0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkFjdGl2aWRhZCAzIg0KYXV0aG9yOiAiU3RlZmFuaWEgQXN0dWRpbGxvIEJlbGxvIg0Kb3V0cHV0Og0KICBwZGZfZG9jdW1lbnQ6IGRlZmF1bHQNCiAgaHRtbF9ub3RlYm9vazogZGVmYXVsdA0KLS0tDQoNCmBgYHtyIHNldHVwLCBpbmNsdWRlPUZBTFNFfQ0KI2xpYnJhcnkoa2FibGVFeHRyYSkNCmxpYnJhcnkoZ2dwbG90MikNCmBgYA0KIyMgUHJvYmxlbWENCg0KQ29uIGJhc2UgZW4gbG9zIGRhdG9zIGRlIG9mZXJ0YXMgZGUgdml2aWVuZGEgZGVzY2FyZ2FkYXMgZGVsIHBvcnRhbCBGaW5jYXJhaXogcGFyYSBhcGFydGFtZW50byBkZSBlc3RyYXRvIDQgY29uIMOhcmVhIGNvbnN0cnVpZGEgbWVub3IgYSAyMDAgJG1eMiQgKHZpdmllbmRhNC5SRFMpIGxhIGlubW9iaWxpYXJpYSBBJkMgcmVxdWllcmUgZWwgYXBveW8gZW4gbGEgY29uc3RydWNjacOzbiBkZSB1biBtb2RlbG8gcXVlIGxvIG9yaWVudGUgc29icmUgbG9zIHByZWNpb3MgZGUgaW5tdWVibGVzLg0KDQpDb24gZXN0ZSBwcm9ww7NzaXRvIGVsIGVxdWlwbyBkZSBhc2Vzb3JlcyBhIGRpc2XDsWFkbyBsb3Mgc2lndWllbnRlcyBwYXNvcyBwYXJhIG9idGVuZXIgdW4gbW9kZWxvIHkgYXPDrSBwb2RlciBhIGZ1dHVybyBkZXRlcm1pbmFyIGxvcyBwcmVjaW9zIGRlIGxvcyBpbm11ZWJsZXMgYSBuZWdvY2lhcg0KDQpgYGB7cn0NCg0Kdml2aWVuZGFzIDwtIHJlYWRSRFMoZmlsZSA9ICJ2aXZpZW5kYTQuUkRTIikNCmhlYWQodml2aWVuZGFzKQ0KDQpgYGANCjEuIFJlYWxpY2UgdW4gYW7DoWxpc2lzIGV4cGxvcmF0b3JpbyBkZSBsYXMgdmFyaWFibGVzIHByZWNpbyBkZSB2aXZpZW5kYSAobWlsbG9uZXMgZGUgcGVzb3MgQ09QKSB5IMOhcmVhIGRlIGxhIHZpdmllbmRhIChtZXRyb3MgY3VhZHJhZG9zKSAtIGluY2x1aXIgZ3LDoWZpY29zIGUgaW5kaWNhZG9yZXMgYXByb3BpYWRvcyBpbnRlcnByZXRhZG9zLg0KDQpgYGB7cn0NCnBhcihtZnJvdz1jKDEsMikpDQpoaXN0KHZpdmllbmRhcyRhcmVhY29uc3QsIHhsYWIgPSAiQXJlYSIsIHlsYWIgPSAiQ2FudGlkYWQiLCBjb2w9InBpbmsiLA0KICAgICBtYWluPSJIaXN0b2dyYW1hIGRlIGxhIHZhcmlhYmxlIGFyZWFjb25zdCIpDQoNCmJveHBsb3Qodml2aWVuZGFzJGFyZWFjb25zdCwgY29sPSJwaW5rIiwNCiAgICAgICAgbWFpbj0iQ2FqYSBkZSBsYSB2YXJpYWJsZSBhcmVhY29uc3QiKQ0KDQpkYXRvc0FyZWEgPC0gc3VtbWFyeSh2aXZpZW5kYXMkYXJlYWNvbnN0KQ0KZGF0b3NBcmVhDQpgYGANCmVsIHByb21lZGlvIGRlbCDDoXJlYSBjb25zdHJ1aWRhIGRlIGxhIG9mZXJ0YSBkZSB2aXZpZW5kYXMgZXMgZGUgODcuNjMgJG1eMiQgcGFyYSDDoXJlYXMgcXVlIG9zY2lsYW4gZW50cmUgbG9zIDQwICRtXjIkIChtw61uaW1vKSB5IGxvcyAyMDAgJG1eMiQgKG3DoXhpbW8pLg0KTGEgZGlzdHJpYnVjacOzbiBkZWwgw6FyZWEgZGUgbGFzIHZpdmllbmRhcyBzaSBtdWVzdHJhIHVuIHNlc2dvIGJhc3RhbnRlIHByb251bmNpYWRvIGEgbGEgZGVyZWNoYTsgcG9kZW1vcyBvYnNlcnZhciBxdWUgZWwgNTAlIGRlIGxhcyB2aXZpZW5kYXMgdGllbmVuIGVudHJlIDQwICRtXjIkIHkgNzUgJG1eMiQgbWllbnRyYXMgcXVlIGVsIG90cm8gNTAlIHRpZW5lIGVudHJlIDc1ICRtXjIkIHkgMjAwICRtXjIkLg0KDQpgYGB7cn0NCnBhcihtZnJvdz1jKDEsMikpDQpoaXN0KHZpdmllbmRhcyRwcmVjaW9tLCB4bGFiID0gInByZWNpbyIsIHlsYWIgPSAiQ2FudGlkYWQiLCBjb2w9InBpbmsiLA0KICAgICBtYWluPSJIaXN0b2dyYW1hIGRlIGxhIHZhcmlhYmxlIHByZWNpb20iKQ0KDQpib3hwbG90KHZpdmllbmRhcyRwcmVjaW9tLCBjb2w9InBpbmsiLA0KICAgICAgICBtYWluPSJDYWphIGRlIGxhIHZhcmlhYmxlIHByZWNpb20iKQ0KDQpkYXRvc1ByZWNpbyA8LSBzdW1tYXJ5KHZpdmllbmRhcyRwcmVjaW9tKQ0KZGF0b3NQcmVjaW8NCmBgYA0KTG9zIGRhdG9zIG5vcyByZXZlbGFuIHF1ZSBlbCBwcm9tZWRpbyBkZWwgcHJlY2lvIGRlIGxhIG9mZXJ0YSBkZSB2aXZpZW5kYXMgZXMgZGUgMjI1LjQgbWlsbG9uZXMsIHBhcmEgdmFsb3JlcyBxdWUgb3NjaWxhbiBlbnRyZSBsb3MgNzggbWlsbG9uZXMgKG3DrW5pbW8pIHkgbG9zIDc2MCBtaWxsb25lcyAobcOheGltbykuDQpwb2RlbW9zIHByZWNpc2FyIHF1ZSBsYSBtaXRhZCBkZSBsYXMgdml2aWVuZGFzIHNlIG9mZXJ0YSBhIHVuIHByZWNpbyBtZW5vciBvIGlndWFsIGEgbG9zIDIxMCBtaWxsb25lcyB5IHPDs2xvIHVuIDI1JSBlc3TDoW4gZW4gdW4gcmFuZ28gZGUgY29zdG9zYXMgc3VwZXJhbmRvIGxvcyAyNjUgbWlsbG9uZXMgZGUgcGVzb3MgY29sb21iaWFub3MuDQoNCjIuIFJlYWxpY2UgdW4gYW7DoWxpc2lzIGV4cGxvcmF0b3JpbyBiaXZhcmlhZG8gZGUgZGF0b3MgZW5mb2NhZG8gZW4gbGEgcmVsYWNpw7NuIGVudHJlIGxhIHZhcmlhYmxlIHJlc3B1ZXN0YSAocHJlY2lvKSBlbiBmdW5jacOzbiBkZSBsYSB2YXJpYWJsZSBwcmVkaWN0b3JhICjDoXJlYSBjb25zdHJ1aWRhKSAtIGluY2x1aXIgZ3LDoWZpY29zIGUgaW5kaWNhZG9yZXMgYXByb3BpYWRvcyBpbnRlcnByZXRhZG9zLg0KDQpgYGB7cn0NCnBsb3Qodml2aWVuZGFzJGFyZWFjb25zdCwgdml2aWVuZGFzJHByZWNpb20sIA0KICAgICB4bGFiID0gIkFyZWEgY29uc3RydWlkYSIsIHlsYWI9IlByZWNpbyBtaWxsb25lcyIsIA0KICAgICBtYWluPSJBbmFsaXNpcyBFeHBsb3JhdG9yaW8gYml2YXJpYWRvIEFyZWEvUHJlY2lvIikNCg0KY29yKHZpdmllbmRhcyRhcmVhY29uc3Qsdml2aWVuZGFzJHByZWNpb20pDQpgYGANCk9ic2VydmFuZG8gbGEgZ3LDoWZpY2EgZGUgZGlzcGVyc2nDs24gcG9kZW1vcyBkZXN0YWNhciB1bmEgdGVuZGVuY2lhIGRpcmVjdGEgbyBjcmVjaWVudGUgZW4gbGEgcmVsYWNpw7NuIGRlbCDDoXJlYSBjb25zdHJ1aWRhIGNvbiBlbCBwcmVjaW8gZGUgbGEgdml2aWVuZGEsIHNpbiBlbWJhcmdvLCBlbCBjb21wb3J0YW1pZW50byBkZWwgcHJlY2lvIGVzIG3DoXMgZGlzcGVyc28gcGFyYSDDoXJlYXMgbWF5b3JlcyBhIDEwMCAkbV4yJCwgbG8gcXVlIHB1ZWRlIGRpZmljdWx0YXIgbGEgcmVwcmVzZW50YXRpdmlkYWQgZGUgdW4gbW9kZWxvIGRlIHJlZ3Jlc2nDs24gbGluZWFsLg0KT2JzZXJ2YW5kbyBlbCBDb2VmaWNpZW50ZSBkZSBDb3JyZWxhY2nDs24gZGUgUGVhcnNvbiAoMC43NikgcG9kZW1vcyBkZXRlcm1pbmFyIHF1ZSBsYSBhc29jaWFjacOzbiBxdWUgbWlkZSBsYSByZWxhY2nDs24gbGluZWFsIGVudHJlIGVsIHByZWNpbyB5IGVsIMOhcmVhIGNvbnN0cnVpZGEgZXMgdW5hIHJlbGFjacOzbiBsaW5lYWwgcG9zaXRpdmEgZMOpYmlsLg0KDQozLiBFc3RpbWUgZWwgbW9kZWxvIGRlIHJlZ3Jlc2nDs24gbGluZWFsIHNpbXBsZSBlbnRyZSAkcHJlY2lvPWYoYXJlYSkrXGVwc2lsb24kLiBJbnRlcnByZXRlIGxvcyBjb2VmaWNpZW50ZXMgZGVsIG1vZGVsbyAkXGJldGEwLCBcYmV0YTEkIGVuIGNhc28gZGUgc2VyIGNvcnJlY3RvLg0KDQpgYGB7cn0NCm1vZCA9IGxtKHZpdmllbmRhcyRwcmVjaW9tfnZpdmllbmRhcyRhcmVhY29uc3QpDQpzdW1tYXJ5KG1vZCkNCmBgYA0KDQpFbCBtb2RlbG8gZGUgcmVncmVzacOzbiBsaW5lYWwgc2UgZXN0aW1hIGVuOiAkUHJlY2lvID0gNjcuMzgxICsgMS44MDMgKiBBcmVhX0NvbnRydWlkYSQNCg0KJFxiZXRhMCQgPSA2Ny4zODEsIGVzdGUgY29lZmljaWVudGUgbm9zIGluZGljYSBlbCB2YWxvciBkZSBsYSB2YXJpYWJsZSBwcmVjaW8gY3VhbmRvIG5vIHNlIHRpZW5lIHVuYSB2aXZpZW5kYSBjb25zdHJ1aWRhLCBzZSBwb2Ryw61hIHBlbnNhciBxdWUgZXMgZWwgdmFsb3IgYmFzZSBkZWwgdGVycmVuby4NCg0KJFxiZXRhMSQgPSAxLjgwMywgaW5kaWNhIHF1ZSBwb3IgY2FkYSBtZXRybyBjdWFkcmFkbyBjb25zdHJ1aWRvIGVsIHZhbG9yIGRlIGxhIHZpdmllbmRhIGluY3JlbWVudGFyYSAxLjgwMyBtaWxsb25lcyBhcHJveGltYWRhbWVudGUuDQoNCjQuIENvbnN0cnVpciB1biBpbnRlcnZhbG8gZGUgY29uZmlhbnphICg5NSUpIHBhcmEgZWwgY29lZmljaWVudGUgJFxiZXRhMSQsIGludGVycHJldGFyIHkgY29uY2x1aXIgc2kgZWwgY29lZmljaWVudGUgZXMgaWd1YWwgYSBjZXJvIG8gbm8uIENvbXBhcmUgZXN0ZSByZXN1bHRhZG8gY29uIHVuYSBwcnVlYmEgZGUgaGlww7N0ZXNpcyB0Lg0KDQpgYGB7cn0NCmNvbmZpbnQobW9kKQ0KYGBgDQoNCkNvbiB1biBuaXZlbCBkZSBjb25maWFuemEgZGVsIDk1JSB5IHVuIDUlIGRlIGVycm9yICRcYWxwaGEkLCBwb2RlbW9zIGRldGVybWluYXIgcXVlIGVsIGNvZWZpY2llbnRlICRcYmV0YTEkIHBhcmEgZWwgY2FzbyBkZWwgw6FyZWEgY29uc3RydWlkYSBwb2Ryw61hIHRvbWFyIHVuIHZhbG9yIGVudHJlIGxvcyAxLDczIHkgbG9zIDEsODcgbWlsbG9uZXMgcG9yIGNhZGEgbWV0cm8gY3VhZHJhZG8gY29uc3RydWlkby4NCmRhZG8gcXVlIGVsIDAgbm8gZXN0YSBpbmNsdWlkbyBlbiBlbCBpbnRlcnZhbG8gZGUgY29uZmlhbnphLCBwb2RlbW9zIGNvbmNsdWlyIHF1ZSBzZSByZWNoYXphIGxhIGhpcMOzdGVzaXMgbnVsYSB5IHNlIGNvbmNsdXllIHF1ZSBoYXkgc3VmaWNpZW50ZSBldmlkZW5jaWEgcGFyYSBubyBhY2VwdGFyIGxhIG51bGlkYWQgZGUgZXN0ZSBjb2VmaWNpZW50ZS4NClNpIGNvbXBhcmFtb3MgZXN0ZSByZXN1bHRhZG8gY29uIGxhIHBydWViYSB0IHF1ZSBub3MgZGEgZWwgb3V0cHV0IGRlbCBwdW50byBhbnRlcmlvciwgZWwgcC12YWx1ZSBwYXJhIGVsIGNvZWZpY2llbnRlICRcYmV0YTEkIGZ1ZSAkMi4yZS0xNiQsIGVzdG8gYXBveWEgZWwgcmVjaGF6byBkZSBsYSBoaXDDs3Rlc2lzIGRlIG51bGlkYWQgeSBhcG95YSBsYSBjb25jbHVzacOzbiBvYnRlbmlkYSBjb24gZWwgaW50ZXJ2YWxvIGRlIGNvbmZpYW56YS4NCg0KNS4gQ2FsY3VsZSBlIGludGVycHJldGUgZWwgaW5kaWNhZG9yIGRlIGJvbmRhZCB5IGFqdXN0ZSAkUl4yJC4NCg0KYGBge3J9DQpyMiA9IHN1bW1hcnkobW9kKSRyLnNxdWFyZWQNCnByaW50KCBwYXN0ZSgiQ29lZmljaWVudGUgZGUgZGV0ZXJtaW5hY2nDs24gKFIyKTogIiwgcjIpICkNCmBgYA0KDQpFbCBpbmRpY2Fkb3IgZGUgYm9uZGFkIHkgYWp1c3RlIHBhcmEgZXN0YSByZWxhY2nDs24gZXMgZGUgMC41OCwgZXN0byBxdWllcmUgZGVjaXIgcXVlIGVsIG1vZGVsbyBleHBsaWNhIHVuIDU4JSBkZSBsYSB2YXJpYWNpw7NuIGRlbCBwcmVjaW8gZGUgbGEgdml2aWVuZGEuDQpEZSBmb3JtYSBnZW5lcmFsIHBvZGVtb3MgZGVjaXIgcXVlIGVsIG1vZGVsbyB0aWVuZSBwb2NhIGZ1ZXJ6YSBwYXJhIHByZWRlY2lyIGEgbGEgdmFyaWFibGUgZGVwZW5kaWVudGUuDQoNCjYuIMK/Q3XDoWwgc2Vyw61hIGVsIHByZWNpbyBwcm9tZWRpbyBlc3RpbWFkbyBwYXJhIHVuIGFwYXJ0YW1lbnRvIGRlIDExMCANCm1ldHJvcyBjdWFkcmFkb3M/IENvbnNpZGVyYSBlbnRvbmNlcyBjb24gZXN0ZSByZXN1bHRhZG8gcXVlIHVuIGFwYXJ0YW1lbnRvIGVuIGxhIG1pc21hIHpvbmEgY29uIDExMCBtZXRyb3MgY3VhZHJhZG9zIGVuIHVuIHByZWNpbyBkZSAyMDAgbWlsbG9uZXMgc2Vyw61hIHVuYSBhdHJhY3RpdmEgZXN0YSBvZmVydGE/IMK/UXXDqSBjb25zaWRlcmFjaW9uZXMgYWRpY2lvbmFsZXMgc2UgZGViZW4gdGVuZXI/Lg0KDQpgYGB7cn0NCnByZWRpY3QobW9kLCBuZXdkYXRhID0gbGlzdChBcmVhX2NvbnRydWlkYT0xMTApKQ0KYGBg</div>
 
 
 
