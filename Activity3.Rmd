@@ -1,5 +1,5 @@
 ---
-title: "Actividad 3"
+title: "Actividad 3 - Métodos y simulación estadística - Grupo A"
 author: "Stefania Astudillo Bello"
 output:
   pdf_document: default
@@ -7,56 +7,207 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#library(kableExtra)
+library(kableExtra)
+#library(ggplot2)
+library(nortest)
 ```
+
+## Introducción
+
+Con base en los datos de ofertas de vivienda descargadas del portal Fincaraiz para apartamento de estrato 4 con área construida menor a 200 $m^2$ (vivienda4.RDS) la inmobiliaria A&C requiere el apoyo en la construcción de un modelo que lo oriente sobre los precios de inmuebles.
+
+El presente análisis se enfoca en encontrar un modelo adecuado para todos los apartamentos que contiene el archivo vivienda4.RDS para esto se excluyen las viviendas de tipo casa el cual arroja 1363 apartamentos en difrentes zonas y precios.
+
+para evaluar el modelo de regresión lineal simple se tienen en cuenta la correlación del área y el precio de los apartamentos.
+
+A continuación se presenta el informe del punto 11 para los directivos de la inmobiliaria
+
+
+Santiago de Cali, Abril 10 del 2023
+
+
+Después de aplicar las formulas apropiadas y analizar la información de los precios de los inmuebles, damos respuesta al servicio contratado por el cliente inmobiliaria A&C:
+
+según los datos del archivo enviado vivienda4.RDS, se concluye que para un mismo estrato, el área; a pesar de que esta variable explica un 58% de la variación del precio de las viviendas, no es información suficiente para para lograr encontrar un modelo adecuado que proporcione información detallada de los precios de las viviendas, ya que pueden existir otras consideraciones que no se encuentran en el archivo enviado como por ejemplo No. de habitaciones, años de construcción, ubicación, inseguridad, el cual al ser valoradas se podría ajustar un modelo que podamos orientarlo para un análisis detallado en cuanto al precio de todos los apartamentos que ofrecen para la venta.
+
+cabe resaltar que esta conclusión se da solamente para los apartamentos que se encuentran en el archivo vivienda4.RDS
+
+Como empresa decidimos tener un clasificación aparte de los de tipo casa y por este motivo se analizó solamente los apartamentos, si se requiere realizar un análisis para las viviendas de tipo casa se sugiere realizarlo aparte.
+
+
+Cordialmente,
+
+
+Stefania Astudillo
+
+
+Cientifica de datos
+
 ## Problema
 
-Con base en los datos de ofertas de vivienda descargadas del portal Fincaraiz para apartamento de estrato 4 con área construida menor a 200 m2 (vivienda4.RDS) la inmobiliaria A&C requiere el apoyo en la construcción de un modelo que lo oriente sobre los precios de inmuebles.
+Con este propósito el equipo de asesores a diseñado los siguientes pasos para obtener un modelo y así poder a futuro determinar los precios de los inmuebles a negociar.
 
-Con este propósito el equipo de asesores a diseñado los siguientes pasos para obtener un modelo y así poder a futuro determinar los precios de los inmuebles a negociar
-
-```{r}
-
-viviendas <- readRDS(file = "vivienda4.RDS")
-head(viviendas)
-```
 1. Realice un análisis exploratorio de las variables precio de vivienda (millones de pesos COP) y área de la vivienda (metros cuadrados) - incluir gráficos e indicadores apropiados interpretados.
 
-```{r}
+Se lee el archivo vivienda4.RDS el cual contiene 1706 viviendas (casas y apartamentos), se expluyen los de tipo casa para realizar un análisis detallado de un total de 1363 apartamentos con la siguiente estructura:
+
+```{r, echo=FALSE}
+viviendas <- readRDS(file = "vivienda4.RDS")
+aptos <- subset(viviendas, tipo != "Casa")
+head = head(aptos)
+kable(head, format = "latex", booktabs = TRUE, caption = "Estructura de archivo vivienda4.RDS")
+```
+
+```{r, echo=FALSE}
 par(mfrow=c(1,2))
-hist(viviendas$areaconst, xlab = "Area", ylab = "Cantidad", col="pink",
-     main="Histograma de la variable areaconst")
+hist(aptos$areaconst, xlab = "Area", ylab = "Cantidad", col="pink",
+     main="Histograma area")
 
-boxplot(viviendas$areaconst, col="pink",
-        main="Caja de la variable areaconst")
+boxplot(aptos$areaconst, col="pink",
+        main="Caja area")
 
-datosArea <- summary(viviendas$areaconst)
-datosArea
+datosArea <- summary(aptos$areaconst)
+summaryArea = as.data.frame(rbind(datosArea))
+kable(summaryArea, format = "latex", booktabs = TRUE, caption = "Resúmen área")
 ```
-el promedio del área construida de la oferta de viviendas es de 87.63 m2 para áreas que oscilan entre los 40 m2 (mínimo) y los 200 m2 (máximo).
-La distribución del área de las viviendas si muestra un sesgo bastante pronunciado a la derecha; podemos observar que el 50% de las viviendas tienen entre 40 m2 y 75 m2 mientras que el otro 50% tiene entre 75m2 y 200 m2.
 
-```{r}
+el promedio del área construida de apartamentos es de  $`r summaryArea$Mean`$ $m^2$ para áreas que oscilan entre los $`r summaryArea$Min`$ $m^2$ (mínimo) y los $`r summaryArea$Max`$ $m^2$ (máximo).
+La distribución del área de las viviendas muestra un sesgo pronunciado a la derecha; podemos observar que el 50% de las viviendas tienen entre $`r summaryArea$Min`$ $m^2$ y $`r summaryArea$Median`$ $m^2$ mientras que el otro 50% tiene entre $`r summaryArea$Median`$ $m^2$ y $`r summaryArea$Max`$ $m^2$.
+
+```{r, echo=FALSE}
 par(mfrow=c(1,2))
-hist(viviendas$preciom, xlab = "precio", ylab = "Cantidad", col="pink",
-     main="Histograma de la variable preciom")
+hist(aptos$preciom, xlab = "precio", ylab = "Cantidad", col="pink",
+     main="Histograma precio en Millones")
 
-boxplot(viviendas$preciom, col="pink",
-        main="Caja de la variable preciom")
+boxplot(aptos$preciom, col="pink",
+        main="Caja precio en Millones")
 
-datosPrecio <- summary(viviendas$preciom)
-datosPrecio
+datosPrecio <- summary(aptos$preciom)
+summaryPrecio = as.data.frame(rbind(datosPrecio))
+kable(summaryPrecio, format = "latex", booktabs = TRUE, caption = "Resumen precio en millones")
+
 ```
-Los datos nos revelan que el promedio del precio de la oferta de viviendas es de 225.4 millones, para valores que oscilan entre los 78 millones (mínimo) y los 760 millones (máximo).
-podemos precisar que la mitad de las viviendas se oferta a un precio menor o igual a los 210 millones y sólo un 25% están en un rango de costosas superando los 265 millones de pesos colombianos.
 
-2. Realice un análisis exploratorio bivariado de datos enfocado en la relación entre la variable respuesta (precio) en función de la variable predictora (area construida) - incluir gráficos e indicadores apropiados interpretados.
+En cuanto al precio los datos nos revelan que en promedio los apartamentos cuestan $ $`r round(summaryPrecio$Mean, digits=3)`$  millones, para valores que oscilan entre los $ $`r summaryPrecio$Min`$ millones (mínimo) y los $ $`r summaryPrecio$Max`$ millones (máximo).
+podemos precisar que la mitad de las viviendas se oferta a un precio menor o igual a los $ $`r summaryPrecio$Median`$ millones y sólo un 25% están en un rango de costosas superando los $ 240 millones de pesos colombianos.
+
+2. Realice un análisis exploratorio bivariado de datos enfocado en la relación entre la variable respuesta (precio) en función de la variable predictora (área construida) - incluir gráficos e indicadores apropiados interpretados.
+
+```{r, echo=FALSE}
+plot(aptos$areaconst, aptos$preciom, 
+     xlab = "Area construida", ylab="Precio millones", 
+     main="Analisis Exploratorio bivariado Area/Precio")
+
+pearson = cor(aptos$areaconst,aptos$preciom)
+pearson
+```
+Observando la gráfica de dispersión podemos destacar una tendencia directa o creciente en la relación del área construida con el precio de la vivienda, sin embargo, el comportamiento del precio es más disperso para áreas mayores a 100 $m^2$, lo que puede dificultar la representatividad de un modelo de regresión lineal.
+Observando el Coeficiente de Correlación de Pearson $`r pearson`$ podemos determinar que la asociación que mide la relación lineal entre el precio y el área construida es una relación lineal positiva débil.
+
+3. Estime el modelo de regresión lineal simple entre $precio=f(area)+\epsilon$. Interprete los coeficientes del modelo $\beta0, \beta1$ en caso de ser correcto.
+
+```{r, echo=FALSE, results = "hide"}
+mod = lm(preciom~areaconst, data=aptos)
+summary(mod)
+```
+```{r, echo=FALSE}
+mod$coefficients
+
+#names(mod$coefficients) <- c("Intercept", "areaconst")
+#kable(rbind(mod$coefficients), format = "latex", booktabs = TRUE)
+```
+
+El modelo de regresión lineal se estima en: $Precio =$ $`r mod$coefficients[1]`$ + $`r mod$coefficients[2]`$ $* areaconst$
+
+$\beta0$ = $`r mod$coefficients[1]`$, este coeficiente nos indica el valor de la variable precio promedio cuando no se tiene una vivienda construida, se podría pensar que es el valor promedio de la base del terreno en ausencia de área construída .
+
+$\beta1$ = $`r mod$coefficients[2]`$, indica que por cada metro cuadrado construido adicional el valor de la vivienda incrementara en promedio $`r mod$coefficients[2]`$ millones aproximadamente.
+
+4. Construir un intervalo de confianza (95%) para el coeficiente $\beta1$, interpretar y concluir si el coeficiente es igual a cero o no. Compare este resultado con una prueba de hipótesis t.
+
+```{r, echo=FALSE}
+confint1 = confint(object = mod, parm="areaconst", level = 0.95)
+confint1
+```
+
+Con un nivel de confianza del 95% y un 5% de error $\alpha$, podemos determinar que el coeficiente $\beta1$ para el caso del área construida podría tomar un valor entre los $`r confint1[1,1]`$ y los $`r confint1[1,2]`$ millones por cada metro cuadrado construido.
+dado que el 0 no esta incluido en el intervalo de confianza, podemos concluir que se rechaza la hipótesis nula y se concluye que hay suficiente evidencia para no aceptar la nulidad de este coeficiente.
+Si comparamos este resultado con la prueba t que nos da el output del punto anterior, el p-value para el coeficiente $\beta1$ fue $2.2e-16$ lo cual quiere decir que es menor al nivel de significancia de 0,05 (5%), esto apoya el rechazo de la hipótesis de nulidad y apoya la conclusión obtenida con el intervalo de confianza.
+
+5. Calcule e interprete el indicador de bondad y ajuste $R^2$.
+
+```{r, echo=FALSE}
+r2 = summary(mod)$r.squared
+print( paste("Coeficiente de determinación (R2): ", r2) )
+```
+
+El indicador de bondad y ajuste para esta relación es de $`r r2`$, esto quiere decir que el modelo explica un 55% de la variación del precio de la vivienda.
+De forma general podemos decir que el modelo tiene poca fuerza para predecir a la variable dependiente.
+
+6. ¿Cuál sería el precio promedio estimado para un apartamento de 110 
+metros cuadrados? Considera entonces con este resultado que un apartamento en la misma zona con 110 metros cuadrados en un precio de 200 millones sería una atractiva esta oferta? ¿Qué consideraciones adicionales se deben tener?.
+
+```{r, echo=FALSE}
+#y=mod$coefficients[1]+mod$coefficients[2]*110
+#y
+
+predict <- predict(mod, data.frame(areaconst = 110), interval = "prediction", level = 0.95)
+predict
+
+```
+
+Con base en los datos obtenidos en los puntos anteriores, se puede establecer la siguiente ecuación de regresión del modelo, para estimar los precios de las viviendas en función del área.
+
+Precio = $`r mod$coefficients[1]`$*(Area) + $`r mod$coefficients[2]`$. 
+
+El Precio para un apto de 110 mts2 es = $`r predict[1]`$ millones aproximadamente. 
+por lo tanto se considera que 200 millones es una buena oferta para el comprador porque se estaría adquiriendo por debajo del precio estimado con un ahorro de 77 Millones aproximadamente
+
+Otras consideraciones: El modelo debería tener en cuenta otras variables que no han sido consideradas para la toma de decisiones a la hora de escoger la vivienda, como por ejemplo: No. de habitaciones, años de construcción, ubicación, inseguridad, etc.
+
+7. Realice la validación de supuestos del modelo por medio de gráficos apropiados, interpretarlos y sugerir posibles soluciones si se violan algunos de ellos. Utilice las pruebas de hipótesis para la validación de supuestos y compare los resultados con lo observado en los gráficos asociados.
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+plot(mod)
+```
+
+De acuerdo con la gráfica #1 Residuals vs Fitted, se observa que los residuos tienen un comportamiento agrupado a la izquierda y pocos a la derecha por lo tanto al no estar distribuidos de manera uniforme no se cumple el supuesto de Homoscedasticidad, y en cuanto a la gráfica QQ-Plot se observan que aunque la mayoría de los datos concuerdan con la linea roja no todos los datos son distribuidos normalmente por lo tanto no se cumple normalidad.
+En cuanto al gráfico Scale-Location no se cumple el supuesto de No autocorrelación porque los errores están correlacionados.
+El gráfico Residuals vs Leverage no cumple el supuesto de Outliers ya que se evidencia datos atípicos es decir que hay errores estandarizados distanciados del resto
+
+8. De ser necesario realice una transformación apropiada para mejorar el ajuste y supuestos del modelo.
 
 ```{r}
-plot(viviendas$areaconst, viviendas$preciom, 
-     xlab = "Area construida", ylab="Precio millones", main="Analisis Exploratorio bivariado Area/Precio" )
+mod_lin_lin <- lm(aptos$preciom~aptos$areaconst)
+mod_lin_log <- lm(aptos$preciom~log(aptos$areaconst))
+mod_log_lin <- lm(log(aptos$preciom)~aptos$areaconst)
+mod_log_log <- lm(log(aptos$preciom)~log(aptos$areaconst))
 
-cor(viviendas$areaconst,viviendas$preciom)
+summary(mod_lin_lin)
+
+summary(mod_lin_log)
+ad.test(aptos$preciom)
+ad.test(log(aptos$areaconst))
+
+summary(mod_log_lin)
+
+summary(mod_log_log)
+
+```
+el r2 ajustado aumentó para la ecuación lineal - logaritmo, se procede a análizar sus gráficos
+
+9. De ser necesario compare el ajuste y supuestos del modelo inicial y el transformado.
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+plot(mod_lin_log)
 ```
 
-relacion positiva debil
+En el modelo inicial que fue el lineal su R2 fue de 0.5597 pero en el modelo que resultó el mejor r2 ajustado es decir el lineal logaritmo aumentó en 0.5865, para este ultimo modelo transformado tampoco se cumple los supuestos ya que al comprobar su p-value con el test de normalidad resultó menor a 0.05%, por lo tanto se concluye que a pesar de mejorar su r2 ninguno de los modelos cumplen los supuestos de Homoscedasticidad, Normalidad, No autocorrelación y el supuesto de Outliers.
+
+10. Estime varios modelos y compare los resultados obtenidos. En el mejor de los modelos, ¿se cumplen los supuestos sobre los errores?
+
+Se estimaron diferentes modelos pero ninguno es acorde para dar una información detallada a la inmobilidaria, si se consideran otras variables a fututo se podría estimar un modelo de regresión lineal multiple dependiente de multiples variables.
+
+
