@@ -1,11 +1,53 @@
 ---
-title: "Actividad_Biomasa"
-output: html_document
+title: "Actividad 1 Métodos estadisticos para la toma de decisiones"
+author: "Stefania Astudillo Bello"
 date: "2023-07-13"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(paqueteMOD)
+data(arboles)
+
+```
+## Introducción
+
+informe
+
+## Problema
+
+Un grupo de investigadores están interesados en poder construir modelos que permitan la valoración de estos beneficio a través de información recogida sobre características de los árboles de una región húmeda, que les permita una estimación de la biomasa y así facilitar la toma de decisiones y la generación de políticas públicas.
+
+Como no es posible obtener el valor del peso del árbol sin cortar, se plantea la opción de estimarla a través de variables como la altura y el diámetro del tronco, información requerida para la estimación del valor de la biomasa.
+
+Se requiere ayude a los investigadores en su propósito utilizando la información contenida en la base de datos arboles suministrada
+
+## Visualización de datos
+
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+head(arboles)
+
+plot(arboles$peso, arboles$diametro, 
+     xlab = "Diametro", ylab="Peso", 
+     main="Diagrama de dispersión Diametro")
+
+plot(arboles$peso, arboles$altura, 
+     xlab = "Altura", ylab="Peso", 
+     main="Diagrama de dispersión Altura")
+
+cor.test(arboles$peso, arboles$diametro)
+cor.test(arboles$peso, arboles$altura)
+
+modelo1 <- lm(arboles$peso~arboles$diametro)
+summary(modelo1)
+modelo1$coefficients
+
+plot(arboles$peso~arboles$diametro)
+abline(modelo1, col="red")
 ```
 
 ## R Markdown
