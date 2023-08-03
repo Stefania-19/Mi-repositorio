@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(paqueteMOD)
 data(arboles)
 
+library(kableExtra)
+
 ```
 ## Introducción
 
@@ -29,7 +31,8 @@ Se requiere ayude a los investigadores en su propósito utilizando la informaci�
 
 ```{r, echo=FALSE}
 par(mfrow=c(1,2))
-head(arboles)
+tabla = head(arboles)
+kable(tabla, format = "latex", booktabs = TRUE, caption = "Estructura de archivo vivienda4.RDS")
 
 plot(arboles$peso, arboles$diametro, 
      xlab = "Diametro", ylab="Peso", 
