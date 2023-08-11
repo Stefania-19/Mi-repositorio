@@ -1,13 +1,113 @@
 ---
 title: "Mercado_Inmobiliario"
+author: "Stefania Astudillo Bello"
+date: "2023-08-03"
 output:
   html_document: default
-date: "2023-08-03"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(echo = TRUE)
+library(paqueteMOD)
+data(vivienda)
+library(kableExtra)
+#library(textshape)
+
+
+
 ```
+
+```{r, include=TRUE}
+datos = head(vivienda)
+#head(vivienda,5)
+
+#datos <- head(vivienda,5)
+
+
+#head(vivienda, 5) %>%
+ # kbl() %>%
+  #kable_styling()*/
+
+#DT::datatable(datos)
+
+tabla = kable(datos, format = "html", caption = "Tabla") %>%
+  kable_styling(bootstrap_options = c("responsive"))
+  
+tabla
+
+str(vivienda)
+
+#registros_duplicados <- vivienda[duplicated(vivienda) | #duplicated(vivienda, fromLast = TRUE), ]
+
+# Mostrar los registros duplicados
+#print(registros_duplicados)
+```
+
+```{r, include=TRUE}
+
+df <- as.data.frame(vivienda)
+df <- df[!duplicated(df$id), ]
+
+# Convertir la columna "Nombres" en rownames
+#rownames(df) <- df$id
+
+#df <- as_tibble(df)
+#rownames(df) <- df$Nombres
+
+# Imprimir el DataFrame con los nuevos rownames
+#print(datos_tibble)
+
+#df <- rownames(df) <- df$id
+#df$id <- null
+
+#df <- textshape::column_to_rownames(df, loc = 1)
+
+#cor(vivienda$preciom, vivienda$areaconst)
+
+
+
+#df <- subset(df, select = -c(zona, piso, tipo, barrio))
+
+
+conteos_nulos <- apply(df, 2, function(col) sum(is.na(col)))
+
+# Crear una matriz con los nombres de las columnas y los conteos de registros nulos
+matriz_resultados <- matrix(conteos_nulos, ncol = 1, dimnames = list(names(df), "Registros_Nulos"))
+
+# Imprimir la matriz de resultados
+print(matriz_resultados)
+
+#which(is.na(vivienda))
+
+#df$zona <- NULL
+columnas_a_eliminar <- c("zona", "piso", "estrato", "parqueaderos", "banios", "habitaciones", "tipo", "barrio", "longitud", "latitud")
+
+# Eliminar las columnas del DataFrame
+df <- df[, !(names(df) %in% columnas_a_eliminar)]
+
+#df <- df[order(df$id), ]
+
+which(is.na(df))
+df <- df[complete.cases(df), ]
+rownames(df) <- df$id
+df$id <- NULL
+
+cor(df) #si vale la pena hacer ACP
+
+#estandarizacion restar cada columna la media y dividirla por la desv estandar
+#scaledatos <- scale(vivienda[,c("preciom")])
+
+acp <- prcomp(scaledatos)
+acp
+
+summary(acp)
+
+
+varianza = acp$sdev^2
+varianza
+```
+
+
 
 ## R Markdown
 
