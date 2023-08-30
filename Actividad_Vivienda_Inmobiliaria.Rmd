@@ -1,0 +1,346 @@
+---
+title: "Actividad 1 Evaluación del mercado inmobiliario urbano"
+author: "Stefania Astudillo"
+date: "2023-08-13"
+output: 
+  html_document:
+    code_download: true
+    code_folding: hide
+    df_print: paged
+  'html_document: df_print: paged': default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
+```
+
+```{r, include=FALSE}
+required_libs <- c(
+  "devtools", "cluster", "dplyr", "ggplot2", "FactoMineR", "factoextra",
+  "ggfortify", "gridExtra", "leaflet", "leaflet.extras", "lmtest",
+  "Rtsne", "summarytools", "tidyverse", "VIM", "widgetframe"
+)
+for (pkg in required_libs) {
+  #if (!require(pkg, quietly = FALSE)) {
+  #  install.packages(pkg, repos = "http://cran.us.r-project.org")
+  #}
+  library(pkg, character.only = TRUE)
+}
+
+if (!require(paqueteDAT, quietly = TRUE)) {
+  devtools::install_github("dgonxalex80/paqueteMOD", force =TRUE)
+}
+library(paqueteDAT)
+```
+
+## Problema
+
+Una empresa inmobiliaria líder en una gran ciudad está buscando comprender en profundidad el mercado de viviendas urbanas para tomar decisiones estratégicas más informadas. La empresa posee una base de datos extensa que contiene información detallada sobre diversas propiedades residenciales disponibles en el mercado. Se requiere realizar un análisis holístico de estos datos para identificar patrones, relaciones y segmentaciones relevantes que permitan mejorar la toma de decisiones en cuanto a la compra, venta y valoración de propiedades.
+
+Retos:
+
+El reto principal consisten en realizar un análisis integral y multidimensional de la base de datos para obtener una comprensión del mercado inmobiliario urbano. Se requiere aplicar diversas técnicas de análisis de datos, incluyendo:
+
+1. Análisis de Componentes Principales: Reducir la dimensionalidad del conjunto de datos y visualizar la estructura de las variables en componentes principales para identificar características clave que influyen en la variación de precios y preferencias del mercado.
+
+2. Análisis de Conglomerados: Agrupar las propiedades residenciales en segmentos homogéneos con características similares para entender las dinámicas y demandas específicas en diferentes partes de la ciudad y en diferentes estratos socioeconómicos.
+
+3. Análisis de Correspondencia : Examinar la relación entre las variables categóricas (tipo de vivienda, zona y barrio) y las variables numéricas (precio, área construida, número de parqueaderos, baños, habitaciones) para identificar patrones de comportamiento del mercado inmobiliario.
+
+4. Visualización de resultados: Presentar gráficos, mapas y otros recursos visuales para comunicar los hallazgos de manera clara y efectiva a la dirección de la empresa.
+
+El informe final debe incluir análisis detallados de los resultados obtenidos, las conclusiones clave y las recomendaciones específicas para guiar las decisiones estratégicas de la empresa inmobiliaria. Se espera que este análisis de datos proporcione ventajas competitivas en el mercado, optimizando la inversión y maximizando los beneficios en un entorno altamente competitivo y en constante cambio.
+
+
+## Desarrollo
+
+```{r}
+head(vivienda)
+```
+
+## EDA {.tabset}
+
+El conjunto de datos de ofertas de viviendas en OLX presenta una estructura compuesta por 3 variables categóricas (zona, piso, tipo, barrio) y 7 variables numéricas. En este análisis, optaremos por descartar la variable "id". La exclusión de esta variable se justifica en virtud de la naturaleza del análisis propuesto, que se enfocará en la identificación de patrones mediante un enfoque no supervisado. En este contexto, la variable "id" carece de significado semántico y contribución al análisis.
+
+
+```{r}
+#| collapse = FALSE
+set.seed(42) # universe answer
+housing = paqueteDAT::vivienda
+housing = housing[rowSums(is.na(housing)) < ncol(housing) - 1, ] # remove rows with all NA features
+housing = housing %>% mutate(piso = ifelse(is.na(piso), NA, as.numeric(housing$piso)))
+```
+
+### NAs
+
+```{r, results='asis', fig.align='center'}
+#| collapse = TRUE
+percentage_na = nrow(housing[apply(is.na(housing), 1, any), ]) / nrow(housing) * 100
+
+pie_na_data = data.frame(
+  Status = c("NA", "Complete"),
+  Percentage = c(percentage_na, 100 - percentage_na)
+)
+
+plot = ggplot(pie_na_data, aes(x = "", y = Percentage, fill = Status)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  labs(x = NULL, y = NULL, fill = "Status") +
+  theme_void() +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), position = position_stack(vjust = 0.5))
+
+print(plot)
+```
+
+El diagrama de pastel ilustra cómo cerca del 50% de los datos presentan al menos una característica con valores faltantes (NA), lo que introduce una capa adicional de complejidad en la implementación de los algoritmos. Es importante señalar que gran parte de los valores faltantes se concentran en la variable "Piso". Esta variable reviste una gran relevancia, ya que desde una perspectiva de negocio, se reconoce su impacto significativo en el precio de las propiedades. Un ejemplo concreto es la variación en el valor de un apartamento idéntico, pero ubicado en pisos diferentes, que puede traducirse en diferencias de millones de pesos.
+
+Dado este contexto, se tomará la decisión de abordar la imputación de estos valores faltantes en la variable "Piso". Esta elección se fundamenta en la importancia de la variable en términos de influencia en los resultados de negocio. La corrección de estos valores faltantes se convierte en una prioridad, ya que su integridad mejorará la calidad y confiabilidad de los análisis posteriores y de los algoritmos que se implementarán. Este proceso de imputación se llevará a cabo con la finalidad de evitar distorsiones en los resultados y asegurar una representación más precisa de la relación entre las características y los precios de las propiedades.
+
+### Resumen
+```{r, results='asis', echo = FALSE}
+#| collapse = TRUE
+housing = housing %>%
+  #select(-c("id", "longitud", "latitud")) %>%
+  mutate(across(where(is.character), factor))
+
+print(dfSummary(housing, headings = FALSE, plain.ascii = FALSE, style = "grid", varnumbers = FALSE, valid.col = FALSE), method = 'render')
+```
+
+Es evidente que las variables numéricas no exhiben una distribución exhaustivamente normal en la mayoría de las instancias. Esta observación sugiere que no es factible inferir conclusiones semánticas con respecto a la totalidad de la población, ya que la representación gráfica indica que no se ajusta al teorema del límite central. Dicha falta de normalidad en la distribución de los datos es un aspecto crucial que debe ser considerado al interpretar tanto el análisis como los resultados subsiguientes. Esta circunstancia puede influir en las estrategias de modelado y en las técnicas estadísticas que se empleen, ya que las suposiciones asociadas a la distribución normal pueden no ser válidas en este contexto.
+
+## {-}
+
+### Completación Missign Values {.tabset}
+
+
+En el conjunto de datos, hemos identificado la presencia de registros con valores igual a 0 en las variables correspondientes a "habitaciones" y "baños". Una revisión de los estratos nos ha permitido observar que estos valores solo abarcan el rango de 3 a 6. Dado que los tipos de propiedades registradas son viviendas y apartamentos, resulta poco razonable que una propiedad carezca de al menos una habitación o un baño.
+
+Por lo tanto, abordaremos estas discrepancias considerándolas como valores faltantes (missing values). Esto nos permitirá incluirlas en el proceso de imputación de datos faltantes, con el propósito de lograr una corrección más completa y precisa.
+
+Optaremos por la imputación de los valores faltantes utilizando el algoritmo KNN, en vista de que los datos exhiben un comportamiento no lineal que no se ajusta al enfoque de la regresión lineal. Es esencial destacar que, a pesar de la viabilidad de la regresión, su aplicación sin cumplir los supuestos podría introducir distorsiones en las interpretaciones resultantes. Si bien alternativas más avanzadas, como el Deep Learning, y opciones más sencillas, como el cálculo del promedio global, están disponibles, hemos optado por el empleo de KNN.
+
+La selección de KNN se respalda en la perspectiva de obtener resultados más efectivos en comparación con la mera estimación promedio. Esta elección encuentra sustento en diversos elementos, entre los cuales destaca la Ley 675 del 2001, que aboga por la homogeneidad de las propiedades en régimen de propiedad horizontal y en los entornos residenciales. Es crucial mantener presente que esta determinación implica un supuesto que abordaremos en el curso del proceso.
+
+#### Linealidad
+
+```{r, results='asis', echo = FALSE, fig.align='center'}
+#| collapse = TRUE
+ggplot(housing, aes(x = areaconst, y = preciom)) + geom_point()
+```
+
+En el gráfico que relaciona el área con el precio, es evidente que para un valor de área pueden existir múltiples precios. Esta observación demuestra que no existe una relación funcional clara entre estas dos dimensiones. Para una evaluación más completa del enfoque de regresión lineal, podemos realizar una rápida revisión utilizando el test RESET, considerando un análisis más profundo con múltiples dimensiones.
+
+```{r}
+#| collapse = TRUE
+linear_model <- lm(preciom ~ areaconst + estrato + banios + habitaciones + latitud + longitud, data = housing)
+print(resettest(linear_model, power = 2), method = 'render')
+```
+
+Como habíamos previsto, el enfoque de regresión no demuestra ser efectivo. Dado que el valor p se acerca a cero, rechazamos la hipótesis nula que sostiene que los datos están adecuadamente modelados mediante regresión. Esta observación fortalece aún más la sugerencia de considerar la adopción del algoritmo KNN.
+
+#### KNN
+
+```{r}
+#| collapse = FALSE
+housing = housing %>% 
+  mutate(banios = ifelse(banios == 0, NA, banios)) %>% 
+  mutate(habitaciones = ifelse(habitaciones == 0, NA, habitaciones))
+
+housing = kNN(housing, variable = c("piso", "banios", "parqueaderos", "habitaciones"))
+any(is.na(housing))
+```
+
+### {-}
+
+### Patrones
+
+```{r, fig.align="center"}
+map = leaflet() %>%
+  addTiles() %>%
+  addHeatmap(data = housing, lng = ~longitud, lat = ~latitud, blur = 5, max = 5, radius = 5)
+
+map
+```
+
+Resulta curioso observar que existe una amplia cobertura en la zona de Cali; sin embargo, esta cobertura solo abarca los estratos 3 al 6. Resulta evidente la presencia de áreas pertenecientes a los estratos 1 y 2 en distintas zonas, lo que sugiere la existencia de posibles inconsistencias en los datos recolectados.
+
+#### Correlation
+
+Dado que planeamos emplear algoritmos sensibles a la escala de unidades, los cuales operan a través de funciones de distancia y comparaciones susceptibles a ser influenciadas por rangos extensos, resulta necesario llevar a cabo una normalización de los datos. Este procedimiento será aplicado exclusivamente a las variables numéricas.
+
+```{r}
+housing_num = housing[, c("piso","estrato","preciom","areaconst","parqueaderos","habitaciones","longitud","latitud")]
+housing_scaled = scale(housing_num)
+```
+
+```{r}
+print(cor(housing_scaled[, c("piso","estrato","areaconst","parqueaderos","habitaciones","longitud","latitud")], housing_scaled[, c("preciom")]), method = "render")
+```
+
+Al analizar las correlaciones entre las variables, se evidencia una fuerte asociación en todos los casos, exceptuando la variable que hace referencia al tipo de piso, la cual muestra una correlación menos significativa con respecto al precio. Estos hallazgos nos permiten llegar a las siguientes conclusiones:
+
+* La alta correlación observada entre la mayoría de las variables y el precio indica que estas desempeñan un papel crucial en la determinación de los valores de las propiedades. Específicamente, factores como el tamaño del inmueble, la ubicación y la cantidad de habitaciones presentan una influencia directa en el precio.
+
+* La baja correlación entre el tipo de piso y el precio, que puede haber sido influenciada por el hecho de que esta variable contenía casi un 50% de valores faltantes, sugiere que este atributo podría tener un impacto menos decisivo en la valoración de las propiedades. La presencia de un gran número de valores faltantes puede haber distorsionado la relación real entre el tipo de piso y el precio, lo que contribuyó a este resultado.
+
+#### K-Means
+
+Dado que no disponemos de un conocimiento intrínseco de las agrupaciones presentes, es imperativo explorar diversos enfoques de agrupamiento. Por lo tanto, procederemos a generar resultados de agrupamientos en un rango de 1 a 10 grupos. Posteriormente, emplearemos el método del codo para identificar una cantidad de grupos sensata que permita iniciar un análisis semántico de los patrones presentes en los datos.
+
+Este proceso nos permitirá obtener una comprensión más profunda de la estructura subyacente de los datos y facilitará la identificación de relaciones y tendencias significativas entre las observaciones. La elección del número óptimo de grupos a través del método del codo contribuirá a una segmentación más precisa y significativa de los datos, lo que a su vez facilitará la interpretación y aplicación de los resultados obtenidos.
+
+```{r, echo = FALSE}
+#| collapse = TRUE
+wss = function(k) {
+  kmeans(housing_scaled, k, nstart=25, algorithm="MacQueen")$tot.withinss
+}
+
+k.values = 1:10
+
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+     type="b", pch=19, frame=FALSE, 
+     xlab="# Cluster",
+     ylab="Total WSS")
+```
+
+Es evidente que a partir de K=2, la variabilidad entre los grupos disminuye de manera significativa. A medida que el valor de K continúa aumentando, la reducción en la variabilidad se vuelve marginal. Por lo tanto, tenemos la opción de seleccionar un valor de K en el rango de 2 a 6 para una representación adecuada de los grupos. En este contexto, optaremos por el valor intermedio de 4, que se encuentra equidistante dentro de este intervalo. Esta elección nos permite alcanzar un compromiso óptimo entre la simplicidad de la segmentación y la captura de la estructura latente en los datos.
+
+```{r, echo = FALSE}
+housing_cluster <- kmeans(housing_scaled, 4, nstart = 25, algorithm="MacQueen")
+housing = housing %>% mutate(cluster = housing_cluster$cluster)
+housing %>% group_by(cluster) %>% summarise_all("mean")
+```
+
+```{r, echo = FALSE}
+colors <- rainbow(4)
+colors
+```
+
+```{r, echo = FALSE}
+map = leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(
+    data = housing,
+    lng = ~longitud,
+    lat = ~latitud,
+    color = colors[housing$cluster],
+    opacity = 0.8,
+    fillOpacity = 0.8,
+    radius = 6
+  )
+
+map
+```
+
+Al observar los clústeres y ubicarlos en el mapa, se identifica que no existe una relación semántica consistente entre los grupos generados y su ubicación geográfica. Aunque se pueden percibir ciertos indicios de agrupación por zona, al repetir el proceso sin considerar las variables de latitud y longitud, los grupos en términos de ubicación se vuelven más ambiguos. Esto nos lleva a identificar la ausencia de un patrón directo con respecto a la zona geográfica. Por consiguiente, estos resultados sugieren que otros factores podrían estar influyendo en la formación de los clústeres.
+
+#### Ingeniería de Variables (PCA) {.tabset}
+
+```{r}
+housing_pca <- prcomp(housing_scaled, scale = TRUE)
+housing_pca_df <- data.frame(housing_pca$x, cluster = housing_cluster$cluster)
+ggplot(housing_pca_df, aes(x = PC1, y = PC2, color = factor(cluster))) + geom_point() + labs(x = "PC1", y = "PC2")
+```
+
+```{r}
+tsne = Rtsne(housing_scaled, perplexity = 30, check_duplicates = FALSE)
+plot(tsne$Y, col = "black", bg= housing_cluster$cluster, pch = 21, cex = 1)
+```
+
+A través del gráfico de Análisis de Componentes Principales (PCA), es posible distinguir claramente las cuatro agrupaciones, lo cual coincide con el objetivo de K-Means de minimizar la varianza entre los grupos generados. Sin embargo, es importante resaltar que estos grupos carecen de significado semántico y son más bien constructos matemáticos o abstractos. Esto se debe a que no se puede establecer una asociación contextual que permita etiquetar o categorizar adecuadamente dichos grupos según el dominio de estudio.
+
+Podemos observar que en el gráfico de Análisis de Componentes Principales (PCA) no se presenta una relación lineal clara entre los datos, lo cual concuerda con las observaciones iniciales acerca de la falta de linealidad en el conjunto de datos. Por esta razón, hemos decidido examinar la estructura de los datos utilizando Rtsne, una técnica que permite, al igual que PCA,  mapear los datos en un espacio de menor dimensión mientras intenta preservar las relaciones de vecindad entre ellos. Sin embargo, resulta evidente que incluso esta herramienta no logra discriminar los grupos de manera precisa. Este hecho comienza a sugerir la posible insuficiencia de características (features) para lograr una discriminación más efectiva entre los grupos, lo que a su vez afecta la identificación de patrones dentro de estos mismos grupos.
+
+Este hallazgo subraya la necesidad de considerar una exploración más exhaustiva de las características utilizadas en el análisis y la posibilidad de incorporar elementos adicionales que puedan capturar de manera más precisa las diferencias y relaciones entre los grupos. Este enfoque más completo podría ayudar a revelar patrones y relaciones que actualmente no están siendo detectados debido a la limitación de las características utilizadas hasta ahora.
+
+Esta percepción se refuerza al examinar los resultados del resumen del cluster 1 en relación con el rango de valores presentes en las variables que conforman este grupo. Una vez más, esta observación subraya la falta de un patrón semántico discernible. En este sentido, es fundamental reconocer que la interpretación y aplicación de estos grupos requieren un enfoque más profundo y contextual para comprender si existen factores subyacentes que puedan aportar sentido a estos agrupamientos desde una perspectiva más allá de lo meramente modelado.
+
+##### Cluster 1
+
+```{r}
+summary(housing[housing$cluster == 1,])
+```
+
+##### Cluster 2
+
+```{r}
+summary(housing[housing$cluster == 2,])
+```
+
+##### Cluster 3
+
+```{r}
+summary(housing[housing$cluster == 3,])
+```
+
+##### Cluster 4
+
+```{r}
+summary(housing[housing$cluster == 4,])
+```
+
+#### {-}
+
+#### Correspondencia {.tabset}
+
+Ahora procederemos a analizar las posibles relaciones y contribuciones de las variables mediante un Análisis de Correspondencia utilizando FAMD (Análisis de Factores Múltiples de Correspondencia), el cual abarca tanto variables numéricas como categóricas. Esta técnica nos permitirá explorar de manera integral cómo las diferentes variables interactúan y contribuyen en el conjunto de datos, revelando patrones de asociación que podrían no ser evidentes en análisis anteriores.
+
+```{r}
+housing_scaled = as.data.frame(housing_scaled)
+housing_scaled$tipo = housing$tipo
+housing_scaled$zona = housing$zona
+housing_scaled$barrio = housing$barrio
+
+res.famd <- FAMD(housing[,c("zona","piso","estrato","preciom","areaconst","parqueaderos","banios","habitaciones","tipo","barrio","longitud","latitud")], graph = FALSE)
+```
+
+##### Scree Plot
+```{r}
+fviz_screeplot(res.famd)
+```
+
+Se puede evidenciar que en 2 dimensiones las variables tanto categoricas como númericas representa el 1.075% de los datos, lo cual equivale a un valor muy inferior.
+
+##### Variables
+```{r}
+fviz_famd_var(res.famd, repel = TRUE)
+```
+
+Las variables barrio, area, parqueaderos, baño y precio son las mejores para discriminar siendo muy aparte barrio que explica muy bien la varianza en las dos dimensiones que más explican la varianza de los datos.
+
+##### Numerical
+```{r}
+fviz_famd_var(res.famd, "quanti.var", col.var = "contrib", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+```
+
+Las variables que tienen un vinculo proporcional son habitaciones areaconst baños y parqueaderos, y la correlacion inversa se puede observar en piso vs habitaciones y estrato vs ubicación (longitud y latitud).
+
+##### Dim 1
+```{r}
+fviz_contrib(res.famd, "var", axes = 1)
+```
+
+Dentro de la dimension 1 se evidencia que las variables que tienen mas influencia en los datos son las que representan entre 10 a 15 % de contribución (precio, baños, barrio, parqueaderos, area, estrato).
+
+##### Dim 2
+```{r}
+fviz_contrib(res.famd, "var", axes = 2)
+```
+
+Dentro de la dimension 2 se evidencia que las variables que tienen mas influencia en los datos son las que representan entre 10 a 25 % de contribución (barrio, zona, tipo, habitaciones).
+
+#### {-}
+
+### Conclusión
+
+Según el análisis del ejercicio propuesto se esperaba encontrar patrones que ayudaran a identificar la agrupación de los datos mediante la tecnica de Cluster, PCA, y Correspondencia, pero durante el desarrollo del caso se identificó que aunque se evidencien 4 clusters a nivel matemático según la varianza de los datos en el diagrama de PCA, no se detallan patrones a nivel semántico o de dominio que permitan dar conclusiones para el mercado inmobiliario, lo que indica que al conjunto de datos podrían adicionar multiples variables para determinar a nivel de negocio los patrones de agrupamiento como por ejemplo (nivel de ruído, seguridad, clima, accesabilidad al servicio) y demás variables que puedan considerarse dentro del mercado inmobiliario y que puedan mostrar un porcentaje mas alto de representatividad, lo anterior puede deberse a la gran cantidad de missing values presentes en las variables representativas en el dataset.
+
+No Obstante fue posible observar según la correspondencia una fuerte influencia en la variable barrio por ser la que mejor representa a nivel de varianza de los datos, adicional que dentro de las variables numéricas se evidencia una buena correlacion entre habitaciones, area construida, baños y parqueaderos.
+
+Para el desarrollo del ejercicio se utilizó la imputación por el método KNN para datos nulos, concluyendo que fue una buena implementación ya que para intentar aumentar significativamente el % de representatividad se analizó la correspondencia con el dataset completo excluyendo los datos faltantes dando como resultado un porcentaje similar de representatividad al anterior, por lo tanto, el método KNN fue una estrategia clave para complementar los datos faltantes.
+
+
