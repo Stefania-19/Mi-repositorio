@@ -1,0 +1,515 @@
+---
+title: "Actividad 2 Caso C&A"
+author: "Stefania Astudillo Bello"
+date: "2023-08-30"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
+
+required_libs <- c(
+  "kableExtra", "dplyr", "ggplot2", "leaflet", "gridExtra", "tinytex"
+
+  # , "cluster", "dplyr", "ggplot2", "FactoMineR", "factoextra",
+  # "ggfortify", "gridExtra", "leaflet", "leaflet.extras", "lmtest",
+  # "Rtsne", "summarytools", "tidyverse", "VIM", "widgetframe"
+)
+
+if (!require(vivienda, quietly = TRUE)) {
+  devtools::install_github("dgonxalex80/paqueteMODELOS", force =TRUE)
+}
+
+library(paqueteMODELOS)
+library(leaflet)
+library(dplyr)
+
+
+```
+
+## Enunciado
+
+Maria comenzó como agente de bienes raíces en Cali hace 10 años. Después de laborar dos años para una empresa nacional, se traslado a Bogotá y trabajó para otra agencia de bienes raíces. Sus amigos y familiares la convencieron de que con su experiencia y conocimientos del negocio debía abrir su propia agencia. Terminó por adquirir la licencia de intermediario y al poco tiempo fundó su propia compañía, C&A (Casas y Apartamentos) en Cali. Santiago y Lina, dos vendedores de la empresa anterior aceptaron trabajar en la nueva compaña. En la actualidad ocho agentes de bienes raíces colaboran con ella en C&A.
+
+Actualmente las ventas de bienes raíces en Cali se han visto disminuidas de manera significativa en lo corrido del año. Durante este periodo muchas instituciones bancarias de ahorro y vivienda están prestando grandes sumas de dinero para la industria y la construcción comercial y residencial. Cuando el efecto producto de las tensiones políticas y sociales disminuya, se espera que la actividad económica de este sector se reactive.
+
+Hace dos días, María recibió una carta solicitando asesoría para la compra de dos viviendas por parte de una compañía internacional que desea ubicar a dos de sus empleados con sus familias en la ciudad. Las solicitudes incluyen las siguientes condiciones:
+
+```{r, echo=FALSE}
+condiciones <- data.frame(
+  Caracteristicas = c("Tipo", "área construida", "parqueaderos", "baños", "habitaciones", "estrato", "zona", "crédito preaprobado"),
+  Vivienda1 = c("Casa", 200, 1, 2, 4, "4 o 5", "Norte", "350 millones"),
+  Vivienda2 = c("Apartamento", 300, 3, 3, 5, "5 o 6", "Sur", "850 millones")
+)
+ 
+tabla = kable(condiciones, booktabs = TRUE, caption = "Condiciones")
+
+tabla
+
+```
+
+Ayude a María a responder la solicitud, mediante técnicas modelación que usted conoce. Ella requiere le envíe un informe ejecutivo donde analice los dos casos y sus recomendaciones (Informe). Como soporte del informe debe anexar las estimaciones, validaciones y comparación de modelos requeridos (Anexos).
+
+## Pasos requeridos para la obtención de los resultados
+
+### Visualización de Dataset:
+
+```{r, echo=FALSE}
+data("vivienda")
+
+head(vivienda, 10)
+```
+
+1. Realice un filtro a la base de datos e incluya solo las ofertas de : base1: casas, de la zona norte de la ciudad. Presente los primeros 3 registros de las bases y algunas tablas que comprueben la consulta. (Adicional un mapa con los puntos de las bases. Discutir si todos los puntos se ubican en la zona correspondiente o se presentan valores en otras zonas, por que?).
+
+
+```{r, echo=FALSE}
+# data("vivienda")
+
+attach(vivienda)
+
+vivienda$base <- ifelse(zona =="Zona Norte" & tipo =="Casa", "Base 1", 
+                         ifelse(zona =="Zona Centro" & tipo =="Casa", "Base 2",
+                          ifelse(zona =="Zona Oeste" & tipo =="Casa", "Base 3",
+                           ifelse(zona =="Zona Oriente" & tipo =="Casa", "Base 4",
+                            ifelse(zona == "Zona Sur" & tipo == "Casa", "Base 5","NA")))))
+
+vivienda$base2 <- ifelse(zona =="Zona Norte" & tipo =="Apartamento", "Base 1", 
+                         ifelse(zona =="Zona Centro" & tipo =="Apartamento", "Base 2",
+                          ifelse(zona =="Zona Oeste" & tipo =="Apartamento", "Base 3",
+                           ifelse(zona =="Zona Oriente" & tipo =="Apartamento", "Base 4",
+                            ifelse(zona == "Zona Sur" & tipo == "Apartamento", "Base 5", "NA")))))
+
+```
+
+### Casas Zona Norte de la ciudad
+
+```{r, echo=FALSE}
+#Eliminar registros nulos por zona y tipo para la funcion filter 
+vivienda <- vivienda[complete.cases(vivienda[, c('zona', 'tipo')]), ]
+```
+
+```{r, echo=FALSE}
+#mostrar tabla de casas zona norte
+base1 <- filter(vivienda, vivienda$zona == "Zona Norte" & vivienda$tipo == "Casa")
+
+head(base1, 3)
+```
+
+```{r, echo=FALSE}
+vivienda_casasNorte = subset(vivienda, tipo == "Casa" & zona == "Zona Norte")
+
+vivienda_casasNorte$base = as.character(vivienda_casasNorte$base)
+
+mapaNorte = leaflet(vivienda_casasNorte) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~longitud, lat = ~latitud, color = "blue", radius = 2)
+
+
+mapaNorte
+```
+
+Como observamos en el mapa existen puntos que no estan ubicados al norte de la ciudad de Cali, el motivo por el cual se visualiza de esta manera puede ser debido a que al momento de capturar la información existía una posible duda de la zona o se ingresó mal el valor, por lo tanto la variable zona no corresponde según las coordenadas de ubicación.
+
+2. Realice un análisis exploratorio de datos enfocado en la correlación entre la variable respuesta (precio de la casa) en función del área construida, estrato, numero de baños, numero de habitaciones y zona donde se ubica la vivienda. Use gráficos interactivos con el paquete plotly e interprete los resultados.
+
+
+Para nuestro EDA de casas en zona norte se utilizarán las siguientes variables:
+preciom
+areaconst
+estrato
+banios
+habitaciones
+parqueadero
+
+```{r, echo=FALSE}
+# Calcular la mediana de 'banios' y 'habitaciones' excluyendo los valores 0
+mediana_banios <- median(vivienda_casasNorte$banios[vivienda_casasNorte$banios != 0], na.rm = TRUE)
+
+mediana_habitaciones <- median(vivienda_casasNorte$habitaciones[vivienda_casasNorte$habitaciones != 0], na.rm = TRUE)
+
+# Reemplazar los valores 0 por la mediana en 'banios' y 'habitaciones'
+vivienda_casasNorte <- vivienda_casasNorte %>%
+  mutate(banios = ifelse(banios == 0, mediana_banios, banios),
+         habitaciones = ifelse(habitaciones == 0, mediana_habitaciones, habitaciones))
+
+mediana_parqueaderos <- median(vivienda_casasNorte$parqueaderos, na.rm = TRUE)
+
+# Reemplazar los valores NA por la mediana en 'parqueaderos'
+vivienda_casasNorte <- vivienda_casasNorte %>%
+  mutate(parqueaderos = ifelse(is.na(parqueaderos), mediana_parqueaderos, parqueaderos))
+```
+
+```{r, echo=FALSE}
+summary(vivienda_casasNorte)
+```
+Según los datos en la zona norte se cuenta con casas aproximadamente de estrato 4 con un promedio de 4 habitaciones, 3 banios, y un área de 265 m2 con un valor promedio de 445 millones de pesos
+
+```{r, echo=FALSE}
+casas_norte <- c("preciom", "areaconst", "estrato", "banios", "habitaciones", "parqueaderos")
+
+histogramas <- list()
+
+for (col in casas_norte) {
+  histograma <- ggplot(vivienda_casasNorte, aes(x = .data[[col]])) +
+    geom_histogram(fill = "blue", color = "black", bins = 20) +
+    labs(title = paste("Histograma de", col))
+
+  histogramas[[col]] <- histograma
+}
+
+tabla_histogramas <- do.call(grid.arrange, histogramas)
+
+print(tabla_histogramas)
+```
+
+Se puede evidenciar que la mayoría de casas de la zona Norte pertenecen a los estratos 3 y 5.
+
+```{r, echo=FALSE}
+correlation_matrix <- cor(vivienda_casasNorte[, c("preciom", "areaconst", "estrato", "banios", "habitaciones", "parqueaderos")])
+print(correlation_matrix)
+```
+
+```{r, echo=FALSE}
+cor_1 <-vivienda_casasNorte[,c("preciom","areaconst","estrato","banios","habitaciones", "parqueaderos")]
+ggpairs(cor_1, title="GGally ") 
+```
+
+### Correlacion
+
+precio y habitaciones: Tienen una correlacion positiva mediana (0.369). Esto significa que hay una relación muy pareja entre mayor el precio mayor cantidad de habitaciones tendra el inmueble..
+
+precio y baños: Tienen una correlación positiva medieanamente alta (0.559). es muy similar al caso al caso de la habitaciones, de que en mayor cantidad de baños mayor es el precio del inmueble.
+
+precio y estrato: Tienen una correlación positiva medieanamente alta (0.612). Esto significa que a medida que aumenta el estrato de la vivienda, es más probable que aumente el precio de la vivienda.
+
+preciom y areacost: Tienen una correlación positiva alta (0.731). Esto significa que hay una relación alta entre mayor es el area mayor el valor del inmueble.
+
+Luego procedemos a revisar la correlacion que tienen las variables predictoras entre si:
+
+areaconst y habiaciones: Tienen una correlacion positiva mediana (0.439). Esto significa que hay una relación muy pareja entre mayor el area contrida mayor cantidad de habitaciones tendra el inmueble.
+
+areaconst y banios: Tienen una correlacion positiva mediana (0.503). Esto significa que hay una realacion muy parecida a la anterior de que mayor area constriuda, mayor cantidad de baños.
+
+areaconst y estrato: Tienen una correlación positiva mediana (0.457). Esto significa que hay una relación positiva mediana entre el area construida y su estrato.
+
+estrato y habitaciones: Tienen una correlación positiva débil (0.101). Esto significa que hay una relación muy pequena entre el estrato de la vivienda y el número de habitaciones, es decir que no importa el estrato y la cantidad de habitaciones.
+
+estrato y banios: Tienen una correlación positiva mediana (0.424). Esto significa que hay una relación pareja entre estrato de la vivienda y el número de baños.
+
+baños y habitaciones: Tienen una correlación positiva mediana (0.597). Esto significa que hay una relación moderada entre el número de baños y el número de habitaciones.
+
+3. Estime un modelo de regresión lineal múltiple con las variables del punto anterior (precio = f(área construida, estrato, número de cuartos, número de parqueaderos, número de baños ) ) e interprete los coeficientes si son estadísticamente significativos. Las interpretaciones deber están contextualizadas y discutir si los resultados son lógicos. Adicionalmente interprete el coeficiente R2
+ y discuta el ajuste del modelo e implicaciones (que podrían hacer para mejorarlo).
+
+```{r, echo=FALSE}
+modelo_casa = lm(preciom ~ areaconst + estrato + habitaciones + banios + parqueaderos, data = vivienda_casasNorte)
+summary(modelo_casa)
+```
+```{r, echo=FALSE}
+modelo_casa$coefficients
+```
+
+El modelo de regresión lineal se estima en: Precio = −265.2079240  + 0.7843193 * (areaconst) + 84.8347949 * (estrato) + 3.4938871 * (habitaciones) + 27.1910622 * (banios) + 15.6220703 * (parqueaderos)
+
+El R2 es igual a 0.6578 lo cual quiere decir que hay un 66% de relación de las variables con el precio del inmueble.
+
+4. Realice la validación de supuestos del modelo e interprete los resultados (no es necesario corregir en caso de presentar problemas, solo realizar sugerencias de que se podría hacer).
+
+```{r, echo=FALSE}
+par(mfrow = c(2, 2))
+plot(modelo_casa)
+```
+
+Supuesto 1: El valor esperado de los errores es cero E[u]=0
+
+```{r, echo=FALSE}
+summary(modelo_casa$residuals)
+```
+
+```{r, echo=FALSE}
+t.test(modelo_casa$residuals, mu=0)
+```
+
+P valor=1>α=0.05 se tiene evidencia suficiente para no rechazar que Ho:ßo=0, por tanto el supuesto se cumple.
+
+Supuesto 2 : Los errores tienen varianza constante. V[ui]=σ2
+
+```{r, echo=FALSE}
+lmtest::gqtest(modelo_casa) ##La prueba de Goldfeld-Quandt se utiliza para determinar si la heterocedasticidad está presente en un modelo de regresión.##
+```
+
+P valor=0.1615>α=0.05, se tiene evidencia suficiente para no rechazar la hipotesis nula, por tanto el supuesto se cumple.
+
+Supuesto 3 : u es una variable con distribución normal. u∼Normal
+.
+
+```{r, echo=FALSE}
+shapiro.test(modelo_casa$residuals)
+```
+
+Como P valor<α=0.05, se rechaza la hipótesis nula, quiere decir que, los errores no se distibuyen de forma normal, el supuesto no se cumple.
+
+Supuesto 4 : Los errores son independientes unos de otros E[ui,uj]
+
+```{r, echo=FALSE}
+lmtest::dwtest(modelo_casa)
+```
+
+Como P valor=1.543e-07<α=0.05, se rechaza la hipótesis nula, quiere decir que, los errores no son indepentientes, el supuesto no se cumple
+
+5. Con el modelo identificado debe predecir el precio de la vivienda con las características de la primera solicitud.
+
+```{r, echo=FALSE}
+predict = predict(modelo_casa,list(vivienda_casasNorte$areaconst == 200, vivienda_casasNorte$estrato >= 4, vivienda_casasNorte$estrato <= 5, vivienda_casasNorte$parqueaderos == 1, vivienda_casasNorte$habitaciones == 4, vivienda_casasNorte$banios == 2, vivienda_casasNorte$zona == "Zona Norte", vivienda_casasNorte$preciom <= 350), interval = "prediction", level = 0.95)
+
+predict
+```
+
+6. Con las predicciones del modelo sugiera potenciales ofertas que responda a la solicitud de la vivienda 1. Tenga encuentra que la empresa tiene crédito preaprobado de máximo 350 millones de pesos. Realice un análisis y presente en un mapa al menos 5 ofertas potenciales que debe discutir.
+
+```{r, echo=FALSE}
+Casa <- filter(vivienda_casasNorte, areaconst >= 200, parqueaderos >= 1, banios >= 2, habitaciones >= 4, zona == "Zona Norte", estrato >= 4, estrato <= 5, preciom <= 350)
+
+#datos filtrados:
+#viviendas_filt2 = vivienda[Casa,]
+
+min(Casa$preciom)
+```
+
+```{r, echo=FALSE}
+max(Casa$preciom)
+```
+
+```{r, echo=FALSE}
+Casa
+```
+
+```{r, echo=FALSE}
+mapaCasas <- leaflet(Casa) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~longitud, lat = ~latitud, color = "green", radius = 4)
+
+mapaCasas
+```
+
+7. Realice los pasos del 1 al 6. Para la segunda solicitud que tiene un crédito pre-aprobado por valor de $850 millones.
+
+1. Realice un filtro a la base de datos e incluya solo las ofertas de : base1: Apartamentos, de la zona Sur de la ciudad. Presente los primeros 3 registros de las bases y algunas tablas que comprueben la consulta. (Adicional un mapa con los puntos de las bases. Discutir si todos los puntos se ubican en la zona correspondiente o se presentan valores en otras zonas, por que?).
+
+
+### Apartamentos Zona Sur de la ciudad
+
+```{r, echo=FALSE}
+#Eliminar registros nulos por zona y tipo para la funcion filter 
+# vivienda <- vivienda[complete.cases(vivienda[, c('zona', 'tipo')]), ]
+```
+
+```{r, echo=FALSE}
+#mostrar tabla de apartamentos zona sur
+baseA <- filter(vivienda, vivienda$zona == "Zona Sur" & vivienda$tipo == "Apartamento")
+
+head(baseA, 3)
+```
+
+```{r, echo=FALSE}
+vivienda_casasSur = subset(vivienda, tipo == "Apartamento" & zona == "Zona Sur")
+
+vivienda_casasSur$base2 = as.character(vivienda_casasSur$base2)
+
+mapaSur = leaflet(vivienda_casasSur) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~longitud, lat = ~latitud, color = "blue", radius = 2)
+
+
+mapaSur
+```
+
+Como observamos en el mapa existen puntos que no estan ubicados al sur de la ciudad de Cali, el motivo por el cual se visualiza de esta manera puede ser debido a que al momento de capturar la información existía una posible duda de la zona o se ingresó mal el valor, por lo tanto la variable zona no corresponde según las coordenadas de ubicación.
+
+2. Realice un análisis exploratorio de datos enfocado en la correlación entre la variable respuesta (precio de la casa) en función del área construida, estrato, numero de baños, numero de habitaciones y zona donde se ubica la vivienda. Use gráficos interactivos con el paquete plotly e interprete los resultados.
+
+
+Para nuestro EDA de casas en zona norte se utilizarán las siguientes variables:
+preciom
+areaconst
+estrato
+banios
+habitaciones
+parqueadero
+
+```{r, echo=FALSE}
+# Calcular la mediana de 'banios' y 'habitaciones' excluyendo los valores 0
+mediana_banios <- median(vivienda_casasSur$banios[vivienda_casasSur$banios != 0], na.rm = TRUE)
+
+mediana_habitaciones <- median(vivienda_casasSur$habitaciones[vivienda_casasSur$habitaciones != 0], na.rm = TRUE)
+
+# Reemplazar los valores 0 por la mediana en 'banios' y 'habitaciones'
+vivienda_casasSur <- vivienda_casasSur %>%
+  mutate(banios = ifelse(banios == 0, mediana_banios, banios),
+         habitaciones = ifelse(habitaciones == 0, mediana_habitaciones, habitaciones))
+
+mediana_parqueaderos <- median(vivienda_casasSur$parqueaderos, na.rm = TRUE)
+
+# Reemplazar los valores NA por la mediana en 'parqueaderos'
+vivienda_casasSur <- vivienda_casasSur %>%
+  mutate(parqueaderos = ifelse(is.na(parqueaderos), mediana_parqueaderos, parqueaderos))
+```
+
+```{r, echo=FALSE}
+summary(vivienda_casasSur)
+```
+
+Según los datos en la zona sur se cuenta con apartamentos aproximadamente de estrato 4 con un promedio de 3 habitaciones, 2 banios, y un área de 97 m2 con un valor promedio de 297 millones de pesos
+
+```{r, echo=FALSE}
+casas_sur <- c("preciom", "areaconst", "estrato", "banios", "habitaciones", "parqueaderos")
+
+histogramas <- list()
+
+for (col in casas_sur) {
+  histograma <- ggplot(vivienda_casasSur, aes(x = .data[[col]])) +
+    geom_histogram(fill = "blue", color = "black", bins = 20) +
+    labs(title = paste("Histograma de", col))
+
+  histogramas[[col]] <- histograma
+}
+
+tabla_histogramas <- do.call(grid.arrange, histogramas)
+
+print(tabla_histogramas)
+```
+
+Se puede evidenciar que la mayoría de Apartamentos de la zona Sur pertenecen a los estratos 4 y 5.
+
+```{r, echo=FALSE}
+correlation_matrix <- cor(vivienda_casasSur[, c("preciom", "areaconst", "estrato", "banios", "habitaciones", "parqueaderos")])
+print(correlation_matrix)
+```
+
+```{r, echo=FALSE}
+cor_1 <-vivienda_casasSur[,c("preciom","areaconst","estrato","banios","habitaciones", "parqueaderos")]
+ggpairs(cor_1, title="GGally ") 
+```
+
+### Correlacion
+
+precio y habitaciones: Tienen una correlacion positiva mediana (0.345). Esto significa que hay una relación muy pareja entre mayor el precio mayor cantidad de habitaciones tendra el inmueble..
+
+precio y baños: Tienen una correlación positiva alta (0.729). a mayor cantidad de baños mayor es el precio del inmueble.
+
+precio y estrato: Tienen una correlación positiva medieanamente alta (0.673). Esto significa que a medida que aumenta el estrato de la vivienda, es más probable que aumente el precio de la vivienda.
+
+preciom y areacost: Tienen una correlación positiva alta (0.758). Esto significa que hay una relación alta entre mayor es el area mayor el valor del inmueble.
+
+Luego procedemos a revisar la correlacion que tienen las variables predictoras entre si:
+
+areaconst y habitaciones: Tienen una correlacion positiva mediana (0.452). Esto significa que hay una relación muy pareja entre mayor el area contrida mayor cantidad de habitaciones tendra el inmueble.
+
+areaconst y banios: Tienen una correlacion positiva mediana (0.675). Esto significa que hay una realacion muy parecida a la anterior de que mayor area constriuda, mayor cantidad de baños.
+
+areaconst y estrato: Tienen una correlación positiva mediana (0.482). Esto significa que hay una relación positiva mediana entre el area construida y su estrato.
+
+estrato y habitaciones: Tienen una correlación positiva débil (0.213). Esto significa que hay una relación muy pequena entre el estrato de la vivienda y el número de habitaciones, es decir que no importa el estrato y la cantidad de habitaciones.
+
+estrato y banios: Tienen una correlación positiva mediana (0.572). Esto significa que hay una relación pareja entre estrato de la vivienda y el número de baños.
+
+baños y habitaciones: Tienen una correlación positiva mediana (0.520). Esto significa que hay una relación moderada entre el número de baños y el número de habitaciones.
+
+3. Estime un modelo de regresión lineal múltiple con las variables del punto anterior (precio = f(área construida, estrato, número de cuartos, número de parqueaderos, número de baños ) ) e interprete los coeficientes si son estadísticamente significativos. Las interpretaciones deber están contextualizadas y discutir si los resultados son lógicos. Adicionalmente interprete el coeficiente R2
+ y discuta el ajuste del modelo e implicaciones (que podrían hacer para mejorarlo).
+
+```{r, echo=FALSE}
+modelo_apto = lm(preciom ~ areaconst + estrato + habitaciones + banios + parqueaderos, data = vivienda_casasSur)
+summary(modelo_apto)
+```
+```{r, echo=FALSE}
+modelo_apto$coefficients
+```
+
+El modelo de regresión lineal se estima en: Precio = -263.274078  + 1.349202 * (areaconst) + 58.925057 * (estrato) + (-19.393309) * (habitaciones) + 46.175360 * (banios) + 72.969936 * (parqueaderos)
+
+El R2 es igual a 0.7652 lo cual quiere decir que hay un 76% de relación de las variables con el precio del inmueble.
+
+4. Realice la validación de supuestos del modelo e interprete los resultados (no es necesario corregir en caso de presentar problemas, solo realizar sugerencias de que se podría hacer).
+
+```{r, echo=FALSE}
+par(mfrow = c(2, 2))
+plot(modelo_apto)
+```
+
+Supuesto 1: El valor esperado de los errores es cero E[u]=0
+
+```{r, echo=FALSE}
+summary(modelo_apto$residuals)
+```
+
+```{r, echo=FALSE}
+t.test(modelo_apto$residuals, mu=0)
+```
+
+P valor=1>α=0.05 se tiene evidencia suficiente para no rechazar que Ho:ßo=0, por tanto el supuesto se cumple.
+
+Supuesto 2 : Los errores tienen varianza constante. V[ui]=σ2
+
+```{r, echo=FALSE}
+lmtest::gqtest(modelo_apto) ##La prueba de Goldfeld-Quandt se utiliza para determinar si la heterocedasticidad está presente en un modelo de regresión.##
+```
+
+P valor=0.8201>α=0.05, se tiene evidencia suficiente para no rechazar la hipotesis nula, por tanto el supuesto se cumple.
+
+Supuesto 3 : u es una variable con distribución normal. u∼Normal
+.
+
+```{r, echo=FALSE}
+shapiro.test(modelo_apto$residuals)
+```
+
+Como P valor<α=0.05, se rechaza la hipótesis nula, quiere decir que, los errores no se distibuyen de forma normal, el supuesto no se cumple.
+
+Supuesto 4 : Los errores son independientes unos de otros E[ui,uj]
+
+```{r, echo=FALSE}
+lmtest::dwtest(modelo_apto)
+```
+
+Como P valor=2.2e-16<α=0.05, se rechaza la hipótesis nula, quiere decir que, los errores no son indepentientes, el supuesto no se cumple
+
+5. Con el modelo identificado debe predecir el precio de la vivienda con las características de la primera solicitud.
+
+```{r, echo=FALSE}
+predict = predict(modelo_apto,list(vivienda_casasSur$areaconst == 300, vivienda_casasSur$estrato >= 5, vivienda_casasSur$estrato <= 6, vivienda_casasSur$parqueaderos == 3, vivienda_casasSur$habitaciones == 5, vivienda_casasSur$banios == 3, vivienda_casasSur$zona == "Zona Sur", vivienda_casasSur$preciom <= 850), interval = "prediction", level = 0.95)
+
+predict
+```
+
+6. Con las predicciones del modelo sugiera potenciales ofertas que responda a la solicitud de la vivienda 1. Tenga encuentra que la empresa tiene crédito preaprobado de máximo 350 millones de pesos. Realice un análisis y presente en un mapa al menos 5 ofertas potenciales que debe discutir.
+
+```{r, echo=FALSE}
+apto <- filter(vivienda_casasSur, areaconst >= 300, parqueaderos >= 3, banios >= 3, habitaciones >= 5, zona == "Zona Sur", estrato >= 5, estrato <= 6, preciom <= 850)
+
+#datos filtrados:
+#viviendas_filt2 = vivienda[Casa,]
+
+min(apto$preciom)
+```
+
+```{r, echo=FALSE}
+max(apto$preciom)
+```
+
+```{r, echo=FALSE}
+apto
+```
+
+```{r, echo=FALSE}
+mapaAptos <- leaflet(apto) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~longitud, lat = ~latitud, color = "green", radius = 4)
+
+mapaAptos
+```
